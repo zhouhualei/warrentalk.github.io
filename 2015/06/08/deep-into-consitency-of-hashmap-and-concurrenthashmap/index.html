@@ -1,0 +1,948 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,Book,juc," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="HashMap与ConcurrentHashMap众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题">
+<meta property="og:url" content="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/index.html">
+<meta property="og:site_name" content="WarrenTalk">
+<meta property="og:description" content="HashMap与ConcurrentHashMap众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。">
+<meta property="og:image" content="http://zhouhualei.github.io/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png">
+<meta property="og:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta property="og:updated_time" content="2017-02-13T16:26:39.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题">
+<meta name="twitter:description" content="HashMap与ConcurrentHashMap众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。">
+<meta name="twitter:image" content="http://zhouhualei.github.io/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/"/>
+
+
+
+
+
+  <title> Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题 | WarrenTalk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?6cdc0c9737c27720d49e320df8535ee2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">WarrenTalk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">卧舟杂谈</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Warren Zhou">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="WarrenTalk">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="WarrenTalk" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-06-08T07:39:15+08:00">
+                2015-06-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Deep-in-JUC/" itemprop="url" rel="index">
+                    <span itemprop="name">Deep in JUC</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="HashMap与ConcurrentHashMap"><a href="#HashMap与ConcurrentHashMap" class="headerlink" title="HashMap与ConcurrentHashMap"></a>HashMap与ConcurrentHashMap</h2><p>众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。<a id="more"></a></p>
+<blockquote>
+<p>ConcurrentHashMap返回的迭代器具有弱一致性（weakly consistent），而并非“及时失败”。弱一致性的迭代器可以容忍并发的修改…<br>                                                                                                                                                                                                             ——《Java并发编程实战》</p>
+</blockquote>
+<h2 id="迭代器的一致性问题"><a href="#迭代器的一致性问题" class="headerlink" title="迭代器的一致性问题"></a>迭代器的一致性问题</h2><p>Java容器类的迭代操作最标准的方式就是使用Iterator，在并发修改的情况下，Iterator的一致性问题就暴露出来了。这种情况下，强一致性的表现就是”及时失败“，抛出大家并不陌生的ConcurrentModificationException。如果只支持弱一致性呢，它就会忽略这个不一致性，允许容器在迭代期间被并发修改。</p>
+<h2 id="强一致性是如何实现的"><a href="#强一致性是如何实现的" class="headerlink" title="强一致性是如何实现的"></a>强一致性是如何实现的</h2><p>HashMap的强一致性是通过引入计数器实现的。</p>
+<pre><code class="java">    /**
+     * The number of times this HashMap has been structurally modified
+     * Structural modifications are those that change the number of mappings in
+     * the HashMap or otherwise modify its internal structure (e.g.,
+     * rehash).  This field is used to make iterators on Collection-views of
+     * the HashMap fail-fast.  (See ConcurrentModificationException).
+     */
+    transient int modCount;
+</code></pre>
+<p>通过引入一个名为modCount的计数器，当有任何修改容器的操作发生后，这个计数器就会自增。以put方法为例：</p>
+<pre><code class="java">    public V put(K key, V value) {
+        if (table == EMPTY_TABLE) {
+            inflateTable(threshold);
+        }
+        if (key == null)
+            return putForNullKey(value);
+        int hash = hash(key);
+        int i = indexFor(hash, table.length);
+        for (Entry&lt;K,V&gt; e = table[i]; e != null; e = e.next) {
+            Object k;
+            if (e.hash == hash &amp;&amp; ((k = e.key) == key || key.equals(k))) {
+                V oldValue = e.value;
+                e.value = value;
+                e.recordAccess(this);
+                return oldValue;
+            }
+        }
+
+        modCount++;
+        addEntry(hash, key, value, i);
+        return null;
+    }
+</code></pre>
+<p>然后，我们再来看看HashMap中的迭代操作，以keySet()为例, 从代码中可以发现它所返回的迭代器类型为HashIterator，在HashIterator的初始化中，会将modCount赋值给expectedModCount, 如果在随后的迭代操作中发现两者不一致就会立即抛出ConcurrentModificationException，这也是所谓的fast-fail。</p>
+<pre><code class="java">    public Set&lt;K&gt; keySet() {
+        Set&lt;K&gt; ks = keySet;
+        return (ks != null ? ks : (keySet = new KeySet()));
+    }
+
+    private final class KeySet extends AbstractSet&lt;K&gt; {
+        public Iterator&lt;K&gt; iterator() {
+            return newKeyIterator();
+        }
+        public int size() {
+            return size;
+        }
+        public boolean contains(Object o) {
+            return containsKey(o);
+        }
+        public boolean remove(Object o) {
+            return HashMap.this.removeEntryForKey(o) != null;
+        }
+        public void clear() {
+            HashMap.this.clear();
+        }
+    }
+
+    Iterator&lt;K&gt; newKeyIterator()   {
+        return new KeyIterator();
+    }
+
+    private final class KeyIterator extends HashIterator&lt;K&gt; {
+        public K next() {
+            return nextEntry().getKey();
+        }
+    }
+
+    private abstract class HashIterator&lt;E&gt; implements Iterator&lt;E&gt; {
+        Entry&lt;K,V&gt; next;        // next entry to return
+        int expectedModCount;   // For fast-fail
+        int index;              // current slot
+        Entry&lt;K,V&gt; current;     // current entry
+
+        HashIterator() {
+            expectedModCount = modCount;
+            if (size &gt; 0) { // advance to first entry
+                Entry[] t = table;
+                while (index &lt; t.length &amp;&amp; (next = t[index++]) == null)
+                    ;
+            }
+        }
+
+        public final boolean hasNext() {
+            return next != null;
+        }
+
+        final Entry&lt;K,V&gt; nextEntry() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            Entry&lt;K,V&gt; e = next;
+            if (e == null)
+                throw new NoSuchElementException();
+
+            if ((next = e.next) == null) {
+                Entry[] t = table;
+                while (index &lt; t.length &amp;&amp; (next = t[index++]) == null)
+                    ;
+            }
+            current = e;
+            return e;
+        }
+
+        public void remove() {
+            if (current == null)
+                throw new IllegalStateException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            Object k = current.key;
+            current = null;
+            HashMap.this.removeEntryForKey(k);
+            expectedModCount = modCount;
+        }
+    }
+</code></pre>
+<h2 id="ConcurrentHash的迭代操作为什么是弱一致性的"><a href="#ConcurrentHash的迭代操作为什么是弱一致性的" class="headerlink" title="ConcurrentHash的迭代操作为什么是弱一致性的"></a>ConcurrentHash的迭代操作为什么是弱一致性的</h2><p>同样的，ConcurrentHashMap的keySet()方法最终也是通过HashIterator的迭代器实现，但代码已经发生了变化，它已经不再维护任何计数器，而且代码中也不会再抛出ConcurrentHashMap()，当容器被并发修改时，迭代操作将会继续执行，因此无法保证迭代操作一定能够得到容器中最新的内容。</p>
+<pre><code class="java">    abstract class HashIterator {
+        int nextSegmentIndex;
+        int nextTableIndex;
+        HashEntry&lt;K,V&gt;[] currentTable;
+        HashEntry&lt;K, V&gt; nextEntry;
+        HashEntry&lt;K, V&gt; lastReturned;
+
+        HashIterator() {
+            nextSegmentIndex = segments.length - 1;
+            nextTableIndex = -1;
+            advance();
+        }
+
+        final void advance() { … }
+
+        final HashEntry&lt;K,V&gt; nextEntry() {
+            HashEntry&lt;K,V&gt; e = nextEntry;
+            if (e == null)
+                throw new NoSuchElementException();
+            lastReturned = e; // cannot assign until after null check
+            if ((nextEntry = e.next) == null)
+                advance();
+            return e;
+        }
+
+        public final boolean hasNext() { return nextEntry != null; }
+        public final boolean hasMoreElements() { return nextEntry != null; }
+
+        public final void remove() {
+            if (lastReturned == null)
+                throw new IllegalStateException();
+            ConcurrentHashMap.this.remove(lastReturned.key);
+            lastReturned = null;
+        }
+    }
+</code></pre>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>最后，从线程安全性、迭代操作的一致性和性能三个方面分别做一个比较：</p>
+<p><img src="/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png" alt="三个维度比较"></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li>《Java并发编程实战》</li>
+<li>jdk 1.7.0_45 源代码</li>
+</ol>
+<center><br><img src="/img/58a1d13a6c923c68fc000003.png" alt="卧舟杂谈"><br>订阅我的微信公众号，您将即时收到新博客提醒！<br></center>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/Book/" rel="tag"># Book</a>
+          
+            <a href="/tags/juc/" rel="tag"># juc</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/04/19/4-way-to-implement-lrucache-in-java/" rel="next" title="4 ways to implement LRUCache in Java">
+                <i class="fa fa-chevron-left"></i> 4 ways to implement LRUCache in Java
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/" rel="prev" title="Learning Haskell: a pure functional programming language">
+                Learning Haskell: a pure functional programming language <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/"
+           data-title="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题" data-url="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80"
+               alt="Warren Zhou" />
+          <p class="site-author-name" itemprop="name">Warren Zhou</p>
+          <p class="site-description motion-element" itemprop="description">Think then do it</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://github.com/zhouhualei" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/warren_zhou" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/hualeizhou" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/joesay" target="_blank" title="DouBan">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  DouBan
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/warrenzhou" target="_blank" title="ZhiHu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  ZhiHu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#HashMap与ConcurrentHashMap"><span class="nav-number">1.</span> <span class="nav-text">HashMap与ConcurrentHashMap</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迭代器的一致性问题"><span class="nav-number">2.</span> <span class="nav-text">迭代器的一致性问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#强一致性是如何实现的"><span class="nav-number">3.</span> <span class="nav-text">强一致性是如何实现的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ConcurrentHash的迭代操作为什么是弱一致性的"><span class="nav-number">4.</span> <span class="nav-text">ConcurrentHash的迭代操作为什么是弱一致性的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">6.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Warren Zhou</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhouhualei"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

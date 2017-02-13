@@ -1,0 +1,918 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Ruby,Metaprogramming,Book,Object Model,Method," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="说在前面这篇文章与这个系列的开篇文章隔了很久了，一直也没有能够整理出来，今天终于搞定一篇，希望尽早完成这个系列吧。上篇比较宏观地介绍了Ruby的元编程，从这篇开始，我们将进入Ruby的世界，探索哪些元编程特性。我们会先来介绍Ruby的对象模型和方法，对象模型是整个Ruby语言的基础，也为元编程带来了巨大的灵活性。而Ruby中的方法在对象模型的基础上提供了强大的动态操纵的能力，能够方便地进行元编程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Metaprogramming Ruby, Part 2: Object model and Method in Ruby">
+<meta property="og:url" content="http://zhouhualei.github.io/2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/index.html">
+<meta property="og:site_name" content="WarrenTalk">
+<meta property="og:description" content="说在前面这篇文章与这个系列的开篇文章隔了很久了，一直也没有能够整理出来，今天终于搞定一篇，希望尽早完成这个系列吧。上篇比较宏观地介绍了Ruby的元编程，从这篇开始，我们将进入Ruby的世界，探索哪些元编程特性。我们会先来介绍Ruby的对象模型和方法，对象模型是整个Ruby语言的基础，也为元编程带来了巨大的灵活性。而Ruby中的方法在对象模型的基础上提供了强大的动态操纵的能力，能够方便地进行元编程。">
+<meta property="og:image" content="http://zhouhualei.github.io/img/ruby-object-model.jpeg">
+<meta property="og:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta property="og:updated_time" content="2017-02-13T16:15:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Metaprogramming Ruby, Part 2: Object model and Method in Ruby">
+<meta name="twitter:description" content="说在前面这篇文章与这个系列的开篇文章隔了很久了，一直也没有能够整理出来，今天终于搞定一篇，希望尽早完成这个系列吧。上篇比较宏观地介绍了Ruby的元编程，从这篇开始，我们将进入Ruby的世界，探索哪些元编程特性。我们会先来介绍Ruby的对象模型和方法，对象模型是整个Ruby语言的基础，也为元编程带来了巨大的灵活性。而Ruby中的方法在对象模型的基础上提供了强大的动态操纵的能力，能够方便地进行元编程。">
+<meta name="twitter:image" content="http://zhouhualei.github.io/img/ruby-object-model.jpeg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zhouhualei.github.io/2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/"/>
+
+
+
+
+
+  <title> Metaprogramming Ruby, Part 2: Object model and Method in Ruby | WarrenTalk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?6cdc0c9737c27720d49e320df8535ee2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">WarrenTalk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">卧舟杂谈</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://zhouhualei.github.io/2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Warren Zhou">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="WarrenTalk">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="WarrenTalk" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Metaprogramming Ruby, Part 2: Object model and Method in Ruby
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2015-08-30T11:09:11+08:00">
+                2015-08-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Metaprogramming-Ruby/" itemprop="url" rel="index">
+                    <span itemprop="name">Metaprogramming Ruby</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>这篇文章与这个系列的开篇文章隔了很久了，一直也没有能够整理出来，今天终于搞定一篇，希望尽早完成这个系列吧。上篇比较宏观地介绍了Ruby的元编程，从这篇开始，我们将进入Ruby的世界，探索哪些元编程特性。我们会先来介绍Ruby的对象模型和方法，对象模型是整个Ruby语言的基础，也为元编程带来了巨大的灵活性。而Ruby中的方法在对象模型的基础上提供了强大的动态操纵的能力，能够方便地进行元编程。<a id="more"></a></p>
+<h2 id="Object-Model"><a href="#Object-Model" class="headerlink" title="Object Model"></a>Object Model</h2><p>先来看一张Ruby对象模型的图</p>
+<p><img src="/img/ruby-object-model.jpeg" alt="Object Model in Ruby"></p>
+<p>Note:</p>
+<ul>
+<li>BasicObject类是Ruby类体系结构的根节点</li>
+<li>Object类是所有类的默认superclass</li>
+<li>关于类为什么可以调用class方法，Class的superclass为什么是Module? 这些问题，可以参考另一篇文章《Ruby中那些不太容易理解的特性》</li>
+</ul>
+<h3 id="Module-in-Object-Model"><a href="#Module-in-Object-Model" class="headerlink" title="Module in Object Model"></a>Module in Object Model</h3><pre><code class="ruby"> # 查看祖先链
+ 2.0.0-p247 :001 &gt; String.ancestors
+ =&gt; [String, Comparable, Object, Kernel, BasicObject]
+</code></pre>
+<p>祖先链中Kernel是一个模块，为什么出现在这？Kernel其实是Object中include进来的一个Module，而Ruby底层会将引入的Module封装成一个匿名类插入到包含它的类的上方。</p>
+<p>关于Kernel模块，值得一提的是，RubyGem就是在Kernel模块中定义了gem()方法，只要require这个包之后就能在任何地方使用这个方法了，还有proc和lambda方法也定义在Kernel模块中。</p>
+<h3 id="Open-Class-可以用来增强Ruby或者框架、类库提供的类4"><a href="#Open-Class-可以用来增强Ruby或者框架、类库提供的类4" class="headerlink" title="Open Class: 可以用来增强Ruby或者框架、类库提供的类4."></a>Open Class: 可以用来增强Ruby或者框架、类库提供的类4.</h3><pre><code class="ruby">&gt; cat object_model.rb
+# 扩展String类
+class String
+  def to_alphanumeric
+    gsub /[^\w\s]/, &#39;&#39;
+  end
+end
+2.0.0-p247 :001 &gt; require &#39;./object_model.rb&#39;
+ =&gt; true 
+2.0.0-p247 :004 &gt; &quot;#hello, *Metaprogrammming&quot;.to_alphanumeric
+ =&gt; &quot;hello Metaprogrammming&quot;
+</code></pre>
+<h3 id="Namespace-using-Module-可以用来防止命名冲突"><a href="#Namespace-using-Module-可以用来防止命名冲突" class="headerlink" title="Namespace using Module: 可以用来防止命名冲突"></a>Namespace using Module: 可以用来防止命名冲突</h3><pre><code class="ruby">&gt; cat namespace_example.rb
+# 利用module创建namespace
+module NamespaceExample
+  class String
+    def length
+      100
+    end
+  end
+end
+
+2.0.0-p247 :004 &gt; String.new.length
+=&gt; 0
+2.0.0-p247 :004 &gt; NamespaceExample::String.new.length
+=&gt; 100
+</code></pre>
+<h2 id="Method-in-Ruby"><a href="#Method-in-Ruby" class="headerlink" title="Method in Ruby"></a>Method in Ruby</h2><h3 id="方法的查找与执行"><a href="#方法的查找与执行" class="headerlink" title="方法的查找与执行"></a>方法的查找与执行</h3><p>概念</p>
+<pre><code> . Receiver: 方法所在的对象
+ . Ancestors: 从Receiver对象所属的类开始到其父类自下而上的链条，以BasicObject为终点，其中也包括模块
+</code></pre><ul>
+<li><p>方法查找就是从Receiver(接收者)开始沿着Ancestors(祖先链)查找，直到找到对应的方法，然后执行该方法。如果没有在Ancestors上找到对应的方法，解释器则会调用Kernel#method_missing()方法，并由它抛出NoMethodError。</p>
+</li>
+<li><p>self关键字表示当前对象，当一个方法被调用时，self就对应了receiver。</p>
+</li>
+</ul>
+<h3 id="方法的动态操纵"><a href="#方法的动态操纵" class="headerlink" title="方法的动态操纵"></a>方法的动态操纵</h3><p>利用方法的动态操纵能力可以避免重复代码，这些动态操纵的技术包括：</p>
+<ol>
+<li>Dynamic Dispatch</li>
+<li>Dynamic Method</li>
+<li>Ghost method</li>
+<li>Dynamic Proxies</li>
+</ol>
+<h4 id="方法的动态调用-利用Dynamic-Dispatch技术"><a href="#方法的动态调用-利用Dynamic-Dispatch技术" class="headerlink" title="方法的动态调用(利用Dynamic Dispatch技术)"></a>方法的动态调用(利用Dynamic Dispatch技术)</h4><p>Ruby方法调用的本质是向Receiver发送消息</p>
+<pre><code class="ruby">&gt; cat send_message.rb
+# 利用send方法进行方法调用
+class SendMessage
+  def my_method(arg)
+    puts arg * 5
+  end
+end
+
+obj = SendMessage.new
+obj.my_method(2)
+obj.send(:my_method, 2)
+</code></pre>
+<p>Dynamic Dispatch技术就利用了send方法，将方法名也作为参数，动态确定方法名，从而实现方法的动态调用。</p>
+<pre><code class="ruby"># 实例：Test::Unit
+method_names = public_instance_methods(true)
+tests = method_names.delete_if {|method_name| method_name !~ /^test./}
+</code></pre>
+<h4 id="方法的动态定义-利用Dynamic-Method技术"><a href="#方法的动态定义-利用Dynamic-Method技术" class="headerlink" title="方法的动态定义(利用Dynamic Method技术)"></a>方法的动态定义(利用Dynamic Method技术)</h4><pre><code class="ruby">&gt; cat dynamic_method.rb
+# 利用Module#define_method()在运行时进行方法定义
+class DynamicMethod
+  define_method :my_method do |my_arg|
+    my_arg * 3
+  end
+end
+
+puts DynamicMethod.new.my_method(2)
+</code></pre>
+<h4 id="创建幽灵方法-在method-missing内定义"><a href="#创建幽灵方法-在method-missing内定义" class="headerlink" title="创建幽灵方法(在method_missing内定义)"></a>创建幽灵方法(在method_missing内定义)</h4><p>当无法找到调用的方法时，将会调用self的method_missing方法，可以利用这个特性创建一些Ghost method(幽灵方法)，这些方法并不真正存在，但对用户来说，跟真实存在的方法没有区别。</p>
+<pre><code class="ruby">&gt; cat ghost_method.rb
+# 在method_missing中创建幽灵方法
+class GhostMethod
+  def initialize
+    @attributes = {}
+  end
+
+  def method_missing(name, *args)
+    attribute = name.to_s
+    if attribute =~ /=$/
+      @attributes[attribute.chop] = args[0]
+    else
+      @attributes[attribute]
+    end
+  end
+end
+
+user = GhostMethod.new
+user.name = &quot;Warren&quot;
+user.job = &quot;Programmer&quot;
+puts user.name
+puts user.job
+</code></pre>
+<h4 id="方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码"><a href="#方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码" class="headerlink" title="方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)"></a>方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)</h4><pre><code class="ruby">&gt; cat http_wrapper.rb
+# 在method_missing中进行方法的转发
+class HttpWrapper
+  def request(method, *params)
+    respose = XmlSimple.xml_in(http_get(request_url(method, params)))
+    rails response[‘err’][‘msg’] if response[’stat’] != ‘ok&#39;
+    response
+  end
+
+  def method_missing(method_id, *params)
+    request(mehtod_id.id2name.gsub(/_/, ‘.’), params[0])     # 利用幽灵方法构造HTTP请求并转发给Web Service
+  end
+end
+</code></pre>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>这里只是罗列了几个基本的元编程技术，将这些技术组合起来能够有效地消除重复代码。你是不是已经领略到了Ruby的神奇了？这还没结束下，期待下一篇吧。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<li><a href="http://book.douban.com/subject/7056800/" target="_blank" rel="external">《Ruby元编程》</a></li>
+</ol>
+<p>Have Fun!</p>
+<center><br><img src="/img/58a1d13a6c923c68fc000003.png" alt="卧舟杂谈"><br>订阅我的微信公众号，您将即时收到新博客提醒！<br></center>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Ruby/" rel="tag"># Ruby</a>
+          
+            <a href="/tags/Metaprogramming/" rel="tag"># Metaprogramming</a>
+          
+            <a href="/tags/Book/" rel="tag"># Book</a>
+          
+            <a href="/tags/Object-Model/" rel="tag"># Object Model</a>
+          
+            <a href="/tags/Method/" rel="tag"># Method</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/" rel="next" title="Learning Haskell: a pure functional programming language">
+                <i class="fa fa-chevron-left"></i> Learning Haskell: a pure functional programming language
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/13/Concurrency-Part-1-IO-Concurrency/" rel="prev" title="聊聊并发，Part 1：IO模型">
+                聊聊并发，Part 1：IO模型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/"
+           data-title="Metaprogramming Ruby, Part 2: Object model and Method in Ruby" data-url="http://zhouhualei.github.io/2015/08/30/Metaprogramming-Ruby-Part-2-Object-model-and-Method-in-Ruby/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80"
+               alt="Warren Zhou" />
+          <p class="site-author-name" itemprop="name">Warren Zhou</p>
+          <p class="site-description motion-element" itemprop="description">Think then do it</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://github.com/zhouhualei" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/warren_zhou" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/hualeizhou" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/joesay" target="_blank" title="DouBan">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  DouBan
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/warrenzhou" target="_blank" title="ZhiHu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  ZhiHu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#说在前面"><span class="nav-number">1.</span> <span class="nav-text">说在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-Model"><span class="nav-number">2.</span> <span class="nav-text">Object Model</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Module-in-Object-Model"><span class="nav-number">2.1.</span> <span class="nav-text">Module in Object Model</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Open-Class-可以用来增强Ruby或者框架、类库提供的类4"><span class="nav-number">2.2.</span> <span class="nav-text">Open Class: 可以用来增强Ruby或者框架、类库提供的类4.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Namespace-using-Module-可以用来防止命名冲突"><span class="nav-number">2.3.</span> <span class="nav-text">Namespace using Module: 可以用来防止命名冲突</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Method-in-Ruby"><span class="nav-number">3.</span> <span class="nav-text">Method in Ruby</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#方法的查找与执行"><span class="nav-number">3.1.</span> <span class="nav-text">方法的查找与执行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方法的动态操纵"><span class="nav-number">3.2.</span> <span class="nav-text">方法的动态操纵</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#方法的动态调用-利用Dynamic-Dispatch技术"><span class="nav-number">3.2.1.</span> <span class="nav-text">方法的动态调用(利用Dynamic Dispatch技术)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方法的动态定义-利用Dynamic-Method技术"><span class="nav-number">3.2.2.</span> <span class="nav-text">方法的动态定义(利用Dynamic Method技术)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建幽灵方法-在method-missing内定义"><span class="nav-number">3.2.3.</span> <span class="nav-text">创建幽灵方法(在method_missing内定义)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码"><span class="nav-number">3.2.4.</span> <span class="nav-text">方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">4.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Warren Zhou</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhouhualei"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

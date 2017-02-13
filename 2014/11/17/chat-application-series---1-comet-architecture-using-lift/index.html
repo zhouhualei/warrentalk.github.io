@@ -1,0 +1,958 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="scala,chat,web,lift," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="说在前面最近听了一场聊天系统设计的分享之后，想研究下不同技术架构不同语言组合下的chat application的实现。今天抽空翻出了以前敲过的基于lift的一个实现版本，原来是《Simply Lift》中的一个sample application。lift是由scala编写的web framework，这个版本的实现采用Comet方式通过HTTP连接的保持完成页面的实时刷新。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chat Application Series - 1: Comet architecture using Lift">
+<meta property="og:url" content="http://zhouhualei.github.io/2014/11/17/chat-application-series---1-comet-architecture-using-lift/index.html">
+<meta property="og:site_name" content="WarrenTalk">
+<meta property="og:description" content="说在前面最近听了一场聊天系统设计的分享之后，想研究下不同技术架构不同语言组合下的chat application的实现。今天抽空翻出了以前敲过的基于lift的一个实现版本，原来是《Simply Lift》中的一个sample application。lift是由scala编写的web framework，这个版本的实现采用Comet方式通过HTTP连接的保持完成页面的实时刷新。">
+<meta property="og:image" content="http://zhouhualei.github.io/img/chat-app-lift-version-ui.png">
+<meta property="og:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta property="og:updated_time" content="2017-02-13T16:25:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chat Application Series - 1: Comet architecture using Lift">
+<meta name="twitter:description" content="说在前面最近听了一场聊天系统设计的分享之后，想研究下不同技术架构不同语言组合下的chat application的实现。今天抽空翻出了以前敲过的基于lift的一个实现版本，原来是《Simply Lift》中的一个sample application。lift是由scala编写的web framework，这个版本的实现采用Comet方式通过HTTP连接的保持完成页面的实时刷新。">
+<meta name="twitter:image" content="http://zhouhualei.github.io/img/chat-app-lift-version-ui.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://zhouhualei.github.io/2014/11/17/chat-application-series---1-comet-architecture-using-lift/"/>
+
+
+
+
+
+  <title> Chat Application Series - 1: Comet architecture using Lift | WarrenTalk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?6cdc0c9737c27720d49e320df8535ee2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">WarrenTalk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle">卧舟杂谈</p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://zhouhualei.github.io/2014/11/17/chat-application-series---1-comet-architecture-using-lift/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Warren Zhou">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="WarrenTalk">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="WarrenTalk" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Chat Application Series - 1: Comet architecture using Lift
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2014-11-17T02:06:44+08:00">
+                2014-11-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/programming/" itemprop="url" rel="index">
+                    <span itemprop="name">programming</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2014/11/17/chat-application-series---1-comet-architecture-using-lift/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2014/11/17/chat-application-series---1-comet-architecture-using-lift/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>最近听了一场聊天系统设计的分享之后，想研究下不同技术架构不同语言组合下的chat application的实现。今天抽空翻出了以前敲过的基于lift的一个实现版本，原来是《Simply Lift》中的一个sample application。lift是由scala编写的web framework，这个版本的实现采用Comet方式通过HTTP连接的保持完成页面的实时刷新。<a id="more"></a></p>
+<h2 id="开发环境"><a href="#开发环境" class="headerlink" title="开发环境"></a>开发环境</h2><ul>
+<li>Mac OSX 10.8.5</li>
+<li>sbt 0.13.1</li>
+<li>scala 2.10.4<del>~</del>~~~</li>
+<li>intellij 14.0.1 Community Edition</li>
+</ul>
+<h2 id="Step-By-Step"><a href="#Step-By-Step" class="headerlink" title="Step By Step"></a>Step By Step</h2><p>安装sbt环境</p>
+<pre><code class="zsh">$ brew install sbt
+$ sbt --version
+</code></pre>
+<p>配置项目骨架插件</p>
+<pre><code class="zsh">$ mkdir ~/.sbt/0.13/plugins
+
+$ vim ~/.sbt/0.13/plugins/np.sbt
+addSbtPlugin(&quot;me.lessis&quot; % &quot;np&quot; % &quot;0.2.0&quot;)
+
+$ vim ~/.sbt/0.13/np.sbt
+seq(npSettings: _*)
+</code></pre>
+<p>新建项目</p>
+<pre><code>$ mkdir chat-app-liftweb-version
+$ cd chat-app-liftweb-version
+</code></pre><p>生成项目骨架</p>
+<pre><code>$ sbt np
+</code></pre><p>配置project的dependency</p>
+<pre><code>$ vim build.sbt
+
+organization := &quot;me.warren&quot;
+
+name := &quot;chat-app-liftweb-version&quot;
+
+version := &quot;1.0&quot;
+
+scalaVersion := &quot;2.10.0&quot;
+
+resolvers ++= Seq(&quot;snapshots&quot;     at &quot;http://oss.sonatype.org/content/repositories/snapshots&quot;,
+                  &quot;releases&quot;      at &quot;http://oss.sonatype.org/content/repositories/releases&quot;
+                )
+
+seq(webSettings :_*)
+
+libraryDependencies ++= {
+  val liftVersion = &quot;2.5-RC1&quot;
+  Seq(
+    &quot;net.liftweb&quot;       %% &quot;lift-webkit&quot;        % liftVersion        % &quot;compile&quot;,
+    &quot;org.eclipse.jetty&quot; % &quot;jetty-webapp&quot; % &quot;8.1.7.v20120910&quot; % &quot;container;provided&quot;,
+    &quot;org.eclipse.jetty.orbit&quot; % &quot;javax.servlet&quot; % &quot;3.0.0.v201112011016&quot; % &quot;container,compile&quot; artifacts Artifact(&quot;javax.servlet&quot;, &quot;jar&quot;, &quot;jar&quot;)
+  )
+}
+</code></pre><p>配置sbt plugin</p>
+<pre><code>$ vim project/plugins.sbt
+
+addSbtPlugin(&quot;com.github.mpeltonen&quot; % &quot;sbt-idea&quot; % &quot;1.6.0&quot;)
+
+addSbtPlugin(&quot;com.earldouglas&quot; % &quot;xsbt-web-plugin&quot; % &quot;0.7.0&quot;)
+</code></pre><p>下载scala, sbt plugin和dependency</p>
+<pre><code>$ sbt update
+</code></pre><p>生成Intellij相关的项目文件，便于import到Intellij中进行后续开发</p>
+<pre><code>$ sbt gen-idea
+</code></pre><p>启动jetty，<a href="http://localhost:8080/" target="_blank" rel="external">http://localhost:8080/</a></p>
+<pre><code>$ sbt ~container:start
+</code></pre><h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>详细代码可参考<a href="https://github.com/zhouhualei/chat-app-liftweb-version" target="_blank" rel="external">https://github.com/zhouhualei/chat-app-liftweb-version</a>，这里只对核心代码做下简单分析。</p>
+<h3 id="HTML页面"><a href="#HTML页面" class="headerlink" title="HTML页面"></a><em>HTML页面</em></h3><p>只有一个主页面，完整路径为src/main/webapp/index.html</p>
+<pre><code class="html">
+&lt;div id=&quot;main&quot; class=&quot;lift:surround?with=default;at=content&quot;&gt;
+    &lt;!-- the behavior of the div --&gt;
+    &lt;div class=&quot;lift:comet?type=Chat&quot;&gt;
+        Some chat messages
+        &lt;ul&gt;
+            &lt;li&gt;A message&lt;/li&gt;
+            &lt;li class=&quot;clearable&quot;&gt;Another message&lt;/li&gt;
+            &lt;li class=&quot;clearable&quot;&gt;A third message&lt;/li&gt;
+        &lt;/ul&gt; &lt;/div&gt;
+    &lt;div&gt;
+        &lt;form class=&quot;form.ajax&quot;&gt;
+            &lt;input class=&quot;lift:ChatIn&quot; id=&quot;chat_in&quot;/&gt;
+            &lt;input type=&quot;submit&quot; value=&quot;Say Something&quot;/&gt;
+        &lt;/form&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<h3 id="聊天表单-ChatIn"><a href="#聊天表单-ChatIn" class="headerlink" title="聊天表单(ChatIn)"></a><em>聊天表单(ChatIn)</em></h3><p>表单提交时，将内容发送给ChatServer，完整路径为src/main/scala/code/snippet/ChatIn</p>
+<pre><code class="scala">
+package code.snippet
+
+import net.liftweb._
+import http._
+import js._
+import JsCmds._
+import JE._
+
+import code.comet.ChatServer
+
+/**
+ * A snippet transforms input to output... it transforms
+ * templates to dynamic content. Lift&#39;s templates can invoke
+ * snippets and the snippets are resolved in many different
+ * ways including &quot;by convention&quot;. The snippet package
+ * has named snippets and those snippets can be classes
+ * that are instantiated when invoked or they can be
+ * objects, singletons. Singletons are useful if there&#39;s
+ * no explicit state managed in the snippet.
+ */
+object ChatIn {
+
+  def render = SHtml.onSubmit(s =&gt; {
+    ChatServer ! s
+    SetValById(&quot;chat_in&quot;, &quot;&quot;)
+  })
+
+}
+</code></pre>
+<h3 id="聊天服务器-ChatServer"><a href="#聊天服务器-ChatServer" class="headerlink" title="聊天服务器(ChatServer)"></a><em>聊天服务器(ChatServer)</em></h3><p>利用Actor并发模型，同时维护多个clients的服务，当聊天记录发生变化时，通知Chat让其通过Comet方式刷新浏览器页面。完整路径为src/main/scala/code/comet/ChatServer</p>
+<pre><code class="scala">package code.comet
+
+import net.liftweb._
+import http._
+import actor._
+
+/**
+ * A singleton that provides chat features to all clients.
+ * It&#39;s an Actor so it&#39;s thread-safe because only one
+ * message will be processed at once.
+ */
+object ChatServer extends LiftActor with ListenerManager {
+
+  private var msgs = Vector(&quot;Welcome&quot;)
+
+  def createUpdate = msgs
+
+  override def lowPriority = {
+    case s: String =&gt; msgs :+= s; updateListeners()
+  }
+
+}
+</code></pre>
+<h3 id="聊天记录-Chat"><a href="#聊天记录-Chat" class="headerlink" title="聊天记录(Chat)"></a><em>聊天记录(Chat)</em></h3><p>负责页面的实时刷新，通过注册ChatServer，当ChatServer收到message时，会得到通知。完整路径为src/main/scala/code/comet/Chat</p>
+<pre><code class="scala">
+package code.comet
+
+import net.liftweb._
+import http._
+import util._
+import Helpers._
+
+/**
+ * The screen real estate on the browser will be represented
+ * by this component. When the component changes on the server
+ * the changes are automatically reflected in the browser.
+ */
+class Chat extends CometActor with CometListener{
+
+  private var msgs: Vector[String] = Vector()
+
+  def registerWith = ChatServer
+
+  override def lowPriority = {
+    case v: Vector[String] =&gt; msgs = v; reRender()
+  }
+
+  def render = &quot;li *&quot; #&gt; msgs &amp; ClearClearable
+}
+</code></pre>
+<h2 id="UI效果"><a href="#UI效果" class="headerlink" title="UI效果"></a>UI效果</h2><p><img src="/img/chat-app-lift-version-ui.png" alt="聊天室页面"></p>
+<h2 id="Resource"><a href="#Resource" class="headerlink" title="Resource"></a>Resource</h2><blockquote>
+<ol>
+<li>Simply Lift, <a href="http://simply.liftweb.net" target="_blank" rel="external">http://simply.liftweb.net</a></li>
+<li>Lift Cookbook, <a href="http://chimera.labs.oreilly.com/books/1234000000030/index.html" target="_blank" rel="external">http://chimera.labs.oreilly.com/books/1234000000030/index.html</a></li>
+</ol>
+</blockquote>
+<center><br><img src="/img/58a1d13a6c923c68fc000003.png" alt="卧舟杂谈"><br>订阅我的微信公众号，您将即时收到新博客提醒！<br></center>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scala/" rel="tag"># scala</a>
+          
+            <a href="/tags/chat/" rel="tag"># chat</a>
+          
+            <a href="/tags/web/" rel="tag"># web</a>
+          
+            <a href="/tags/lift/" rel="tag"># lift</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/01/01/summary2013/" rel="next" title="2013总结 2014计划">
+                <i class="fa fa-chevron-left"></i> 2013总结 2014计划
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/12/27/backend_engineer_learning_css_1/" rel="prev" title="后端程序员学CSS系列1：布局">
+                后端程序员学CSS系列1：布局 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2014/11/17/chat-application-series---1-comet-architecture-using-lift/"
+           data-title="Chat Application Series - 1: Comet architecture using Lift" data-url="http://zhouhualei.github.io/2014/11/17/chat-application-series---1-comet-architecture-using-lift/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80"
+               alt="Warren Zhou" />
+          <p class="site-author-name" itemprop="name">Warren Zhou</p>
+          <p class="site-description motion-element" itemprop="description">Think then do it</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">29</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://github.com/zhouhualei" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/warren_zhou" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/hualeizhou" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/joesay" target="_blank" title="DouBan">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  DouBan
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/warrenzhou" target="_blank" title="ZhiHu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  ZhiHu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#说在前面"><span class="nav-number">1.</span> <span class="nav-text">说在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开发环境"><span class="nav-number">2.</span> <span class="nav-text">开发环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step-By-Step"><span class="nav-number">3.</span> <span class="nav-text">Step By Step</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码分析"><span class="nav-number">4.</span> <span class="nav-text">代码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTML页面"><span class="nav-number">4.1.</span> <span class="nav-text">HTML页面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聊天表单-ChatIn"><span class="nav-number">4.2.</span> <span class="nav-text">聊天表单(ChatIn)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聊天服务器-ChatServer"><span class="nav-number">4.3.</span> <span class="nav-text">聊天服务器(ChatServer)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聊天记录-Chat"><span class="nav-number">4.4.</span> <span class="nav-text">聊天记录(Chat)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UI效果"><span class="nav-number">5.</span> <span class="nav-text">UI效果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Resource"><span class="nav-number">6.</span> <span class="nav-text">Resource</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Warren Zhou</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhouhualei"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>
