@@ -90,16 +90,16 @@
 <meta name="description" content="说在前面最近，Java写恶心了，计划重新捡起丢在一边很久的Scala，但是，Scala是个大怪物，几年前刚接触Scala的时候，认认真真地读过一遍原版《Programming in Scala : A Comprehensive Step-by-step Guide》，但是完全迷失在一堆难于理解的概念中。回头细想，本质上还是缺乏函数式编程的功底。为了更好地理解函数式编程的核心理念，我就用Haske">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Learning Haskell: a pure functional programming language">
-<meta property="og:url" content="http://zhouhualei.github.io/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/index.html">
+<meta property="og:url" content="http://warrentalk.site/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/index.html">
 <meta property="og:site_name" content="WarrenTalk">
 <meta property="og:description" content="说在前面最近，Java写恶心了，计划重新捡起丢在一边很久的Scala，但是，Scala是个大怪物，几年前刚接触Scala的时候，认认真真地读过一遍原版《Programming in Scala : A Comprehensive Step-by-step Guide》，但是完全迷失在一堆难于理解的概念中。回头细想，本质上还是缺乏函数式编程的功底。为了更好地理解函数式编程的核心理念，我就用Haske">
-<meta property="og:image" content="http://zhouhualei.github.io/img/haskell-class-hierarchy.png">
-<meta property="og:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta property="og:image" content="http://warrentalk.site/img/haskell-class-hierarchy.png">
+<meta property="og:image" content="http://warrentalk.site/img/58a1d13a6c923c68fc000003.png">
 <meta property="og:updated_time" content="2017-02-13T16:13:35.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Learning Haskell: a pure functional programming language">
 <meta name="twitter:description" content="说在前面最近，Java写恶心了，计划重新捡起丢在一边很久的Scala，但是，Scala是个大怪物，几年前刚接触Scala的时候，认认真真地读过一遍原版《Programming in Scala : A Comprehensive Step-by-step Guide》，但是完全迷失在一堆难于理解的概念中。回头细想，本质上还是缺乏函数式编程的功底。为了更好地理解函数式编程的核心理念，我就用Haske">
-<meta name="twitter:image" content="http://zhouhualei.github.io/img/haskell-class-hierarchy.png">
+<meta name="twitter:image" content="http://warrentalk.site/img/haskell-class-hierarchy.png">
 
 
 
@@ -127,7 +127,7 @@
 
 
 
-  <link rel="canonical" href="http://zhouhualei.github.io/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/"/>
+  <link rel="canonical" href="http://warrentalk.site/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/"/>
 
 
 
@@ -280,7 +280,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="http://zhouhualei.github.io/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/">
+  <link itemprop="mainEntityOfPage" href="http://warrentalk.site/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Warren Zhou">
@@ -388,178 +388,46 @@
 
       
         <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>最近，Java写恶心了，计划重新捡起丢在一边很久的Scala，但是，Scala是个大怪物，几年前刚接触Scala的时候，认认真真地读过一遍原版《Programming in Scala : A Comprehensive Step-by-step Guide》，但是完全迷失在一堆难于理解的概念中。回头细想，本质上还是缺乏函数式编程的功底。为了更好地理解函数式编程的核心理念，我就用Haskell这门纯粹的函数式语言作为起点，开启我的重拾Scala之路。<a id="more"></a></p>
-<h2 id="Install-Haskell-Environment-in-Mac-Step-By-Step"><a href="#Install-Haskell-Environment-in-Mac-Step-By-Step" class="headerlink" title="Install Haskell Environment in Mac Step By Step"></a>Install Haskell Environment in Mac Step By Step</h2><pre><code>% brew install ghc cabal-install
-</code></pre><pre><code>% ghci
-GHCi, version 7.8.4: http://www.haskell.org/ghc/  :? for help
-Loading package ghc-prim ... linking ... done.
-Loading package integer-gmp ... linking ... done.
-Loading package base ... linking ... done.
-Prelude&gt; 4
-4
-</code></pre><h2 id="Basic-Concepts"><a href="#Basic-Concepts" class="headerlink" title="Basic Concepts"></a>Basic Concepts</h2><h3 id="定义函数"><a href="#定义函数" class="headerlink" title="定义函数"></a>定义函数</h3><pre><code>Prelude&gt; let double x = x * 2
-Prelude&gt; double 2
-4
-</code></pre><h3 id="定义模块"><a href="#定义模块" class="headerlink" title="定义模块"></a>定义模块</h3><pre><code>./double.hs
-module Main where
-    double x = x + x
-</code></pre><pre><code>Prelude&gt; :load double.hs
-[1 of 1] Compiling Main             ( double.hs, interpreted )
-Ok, modules loaded: Main.
-*Main&gt; double 5
-10
-</code></pre><h2 id="递归"><a href="#递归" class="headerlink" title="递归"></a>递归</h2><h3 id="递归的不同实现-gt-阶乘问题"><a href="#递归的不同实现-gt-阶乘问题" class="headerlink" title="递归的不同实现 -&gt; 阶乘问题"></a>递归的不同实现 -&gt; 阶乘问题</h3><h4 id="一行递归"><a href="#一行递归" class="headerlink" title="一行递归"></a>一行递归</h4><pre><code>Prelude&gt; let fact x = if x==0 then 1 else fact (x - 1) * x
-Prelude&gt; fact 3
-6
-</code></pre><h4 id="模式匹配"><a href="#模式匹配" class="headerlink" title="模式匹配"></a>模式匹配</h4><pre><code>./factorial.hs
-module Main where
-    factorial :: Integer -&gt; Integer     -- type declaration
-    factorial 0 = 1                     -- pattern 1
-    factorial x = x * factorial (x - 1) -- pattern 2
-</code></pre><h4 id="哨兵表达式"><a href="#哨兵表达式" class="headerlink" title="哨兵表达式"></a>哨兵表达式</h4><pre><code>./fact_with_guard.hs
-module Main where
-    factorial :: Integer -&gt; Integer
-    factorial x
-        | x &gt; 1 = x * factorial (x - 1)
-        | otherwise = 1
-</code></pre><h3 id="高效地处理递归，元祖和列表-gt-Example-斐波那契序列问题"><a href="#高效地处理递归，元祖和列表-gt-Example-斐波那契序列问题" class="headerlink" title="高效地处理递归，元祖和列表 -&gt; Example: 斐波那契序列问题"></a>高效地处理递归，元祖和列表 -&gt; Example: 斐波那契序列问题</h3><h4 id="不够高效的实现：模式匹配"><a href="#不够高效的实现：模式匹配" class="headerlink" title="不够高效的实现：模式匹配"></a>不够高效的实现：模式匹配</h4><pre><code>./fib.hs
-module Main where
-    fib :: Integer -&gt; Integer
-    fib 0 = 1
-    fib 1 = 1
-    fib x = fib (x - 1) + fib (x - 2)
-</code></pre><h4 id="高效实现：利用元组，转换为尾递归"><a href="#高效实现：利用元组，转换为尾递归" class="headerlink" title="高效实现：利用元组，转换为尾递归"></a>高效实现：利用元组，转换为尾递归</h4><pre><code>./fib_tuple.hs
-module Main where
-    fibTuple :: (Integer, Integer, Integer) -&gt; (Integer, Integer, Integer)
-    fibTuple (x, y, 0) = (x, y, 0)
-    fibTuple (x, y, index) = fibTuple (y, x + y, index - 1)
-
-    fibResult :: (Integer, Integer, Integer) -&gt; Integer
-    fibResult (x, y, z) = x
-
-    fib :: Integer -&gt; Integer
-    fib x = fibResult (fibTuple (0, 1, x))
-</code></pre><h4 id="利用函数的组合"><a href="#利用函数的组合" class="headerlink" title="利用函数的组合"></a>利用函数的组合</h4><pre><code>./fib_pair.hs
-module Main where
-    fibNextPair :: (Integer, Integer) -&gt; (Integer, Integer)
-    fibNextPair (x, y) = (y, x + y)
-
-    fibNthPair :: Integer -&gt; (Integer, Integer)
-    fibNthPair 1 = (1, 1)
-    fibNthPair n = fibNextPair (fibNthPair (n - 1))
-
-    fib :: Integer -&gt; Integer
-    fib = fst . fibNthPair
-</code></pre><h2 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h2><h3 id="匿名函数（lambda）"><a href="#匿名函数（lambda）" class="headerlink" title="匿名函数（lambda）"></a>匿名函数（lambda）</h3><pre><code>Prelude&gt; (\x -&gt; x ++ &quot;World!&quot;) &quot;Hello &quot;
-&quot;Hello World!&quot;
-</code></pre><h3 id="map"><a href="#map" class="headerlink" title="map"></a>map</h3><pre><code>-- map + lamda
-Prelude&gt; map (\x -&gt; x * x) [1, 2, 3]
-[1,4,9]
-</code></pre><h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><pre><code>*Main&gt; filter odd [1, 2, 3, 4, 5]
-[1,3,5]
-</code></pre><h3 id="flodl-foldr"><a href="#flodl-foldr" class="headerlink" title="flodl, foldr"></a>flodl, foldr</h3><pre><code>Prelude&gt; foldl (\x carryOver -&gt; carryOver + x) 0 [1 .. 10]  — fold from left to right
-55 
-Prelude&gt; foldr (\x carryOver -&gt; carryOver + x) 0 [1 .. 10]  — fold from right to left
-55
-</code></pre><h4 id="foldl的一种简化表达-fold1"><a href="#foldl的一种简化表达-fold1" class="headerlink" title="foldl的一种简化表达: fold1"></a>foldl的一种简化表达: fold1</h4><pre><code>Prelude&gt; foldl1 (+) [1 .. 10]
-55
-</code></pre><h2 id="Advanced-Concepts"><a href="#Advanced-Concepts" class="headerlink" title="Advanced Concepts "></a>Advanced Concepts </h2><h3 id="偏应用函数：将多参数的函数拆分为多个只有一个参数的函数"><a href="#偏应用函数：将多参数的函数拆分为多个只有一个参数的函数" class="headerlink" title="偏应用函数：将多参数的函数拆分为多个只有一个参数的函数"></a>偏应用函数：将多参数的函数拆分为多个只有一个参数的函数</h3><pre><code>-- 发现偏应用
-Prelude&gt; let prod x y = x * y
-Prelude&gt; :t prod
-prod :: Num a =&gt; a -&gt; a -&gt; a        -- 看到两个箭头了吗, prod x y其实是通过(prod x ) y实现的
-</code></pre><pre><code>-- 偏应用：绑定函数的一部分参数
-Prelude&gt; let prod x y = x * y
-Prelude&gt; let double = prod 2
-Prelude&gt; :t double
-double :: Num a =&gt; a -&gt; a
-</code></pre><p>偏应用函数的运算过程称为柯里化</p>
+<h2 id="Install-Haskell-Environment-in-Mac-Step-By-Step"><a href="#Install-Haskell-Environment-in-Mac-Step-By-Step" class="headerlink" title="Install Haskell Environment in Mac Step By Step"></a>Install Haskell Environment in Mac Step By Step</h2><figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line">% brew <span class="keyword">install</span> ghc cabal-<span class="keyword">install</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">% ghci</span><br><span class="line">GHCi, version <span class="number">7.8</span><span class="number">.4</span>: http:<span class="comment">//www.haskell.org/ghc/  :? for help</span></span><br><span class="line"><span class="function"><span class="title">Loading</span></span> package ghc-prim ... linking ... done.</span><br><span class="line"><span class="function"><span class="title">Loading</span></span> package <span class="keyword">integer</span>-gmp ... linking ... done.</span><br><span class="line"><span class="function"><span class="title">Loading</span></span> package base ... linking ... done.</span><br><span class="line">Prelude&gt; <span class="number">4</span></span><br><span class="line"><span class="number">4</span></span><br></pre></td></tr></table></figure>
+<h2 id="Basic-Concepts"><a href="#Basic-Concepts" class="headerlink" title="Basic Concepts"></a>Basic Concepts</h2><h3 id="定义函数"><a href="#定义函数" class="headerlink" title="定义函数"></a>定义函数</h3><figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">Prelude&gt; let <span class="keyword">double</span> <span class="keyword">x</span> = <span class="keyword">x</span> * <span class="number">2</span></span><br><span class="line">Prelude&gt; <span class="keyword">double</span> <span class="number">2</span></span><br><span class="line"><span class="number">4</span></span><br></pre></td></tr></table></figure>
+<h3 id="定义模块"><a href="#定义模块" class="headerlink" title="定义模块"></a>定义模块</h3><figure class="highlight llvm"><table><tr><td class="code"><pre><span class="line">./<span class="keyword">double</span>.hs</span><br><span class="line"><span class="keyword">module</span> Main where</span><br><span class="line">    <span class="keyword">double</span> <span class="keyword">x</span> = <span class="keyword">x</span> + <span class="keyword">x</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Prelude</span>&gt; <span class="selector-pseudo">:load</span> <span class="selector-tag">double</span><span class="selector-class">.hs</span></span><br><span class="line"><span class="selector-attr">[1 of 1]</span> <span class="selector-tag">Compiling</span> <span class="selector-tag">Main</span>             ( <span class="selector-tag">double</span><span class="selector-class">.hs</span>, <span class="selector-tag">interpreted</span> )</span><br><span class="line"><span class="selector-tag">Ok</span>, <span class="selector-tag">modules</span> <span class="selector-tag">loaded</span>: <span class="selector-tag">Main</span>.</span><br><span class="line">*<span class="selector-tag">Main</span>&gt; <span class="selector-tag">double</span> 5</span><br><span class="line">10</span><br></pre></td></tr></table></figure>
+<h2 id="递归"><a href="#递归" class="headerlink" title="递归"></a>递归</h2><h3 id="递归的不同实现-gt-阶乘问题"><a href="#递归的不同实现-gt-阶乘问题" class="headerlink" title="递归的不同实现 -&gt; 阶乘问题"></a>递归的不同实现 -&gt; 阶乘问题</h3><h4 id="一行递归"><a href="#一行递归" class="headerlink" title="一行递归"></a>一行递归</h4><figure class="highlight gams"><table><tr><td class="code"><pre><span class="line">Prelude&gt; let <span class="built-in">fact</span> x = <span class="keyword">if</span> x==<span class="number">0</span> <span class="keyword">then</span> <span class="number">1</span> <span class="keyword">else</span> <span class="built-in">fact</span> (x - <span class="number">1</span>) * x</span><br><span class="line">Prelude&gt; <span class="built-in">fact</span> <span class="number">3</span></span><br><span class="line"><span class="number">6</span></span><br></pre></td></tr></table></figure>
+<h4 id="模式匹配"><a href="#模式匹配" class="headerlink" title="模式匹配"></a>模式匹配</h4><figure class="highlight haskell"><table><tr><td class="code"><pre><span class="line">./factorial.hs</span><br><span class="line"><span class="keyword">module</span> Main <span class="keyword">where</span></span><br><span class="line">    factorial :: <span class="type">Integer</span> -&gt; <span class="type">Integer</span>     <span class="comment">-- type declaration</span></span><br><span class="line">    factorial <span class="number">0</span> = <span class="number">1</span>                     <span class="comment">-- pattern 1</span></span><br><span class="line">    factorial x = x * factorial (x - <span class="number">1</span>) <span class="comment">-- pattern 2</span></span><br></pre></td></tr></table></figure>
+<h4 id="哨兵表达式"><a href="#哨兵表达式" class="headerlink" title="哨兵表达式"></a>哨兵表达式</h4><figure class="highlight clean"><table><tr><td class="code"><pre><span class="line">./fact_with_guard.hs</span><br><span class="line"><span class="keyword">module</span> Main <span class="keyword">where</span></span><br><span class="line">    factorial :: Integer -&gt; Integer</span><br><span class="line">    factorial x</span><br><span class="line">        | x &gt; <span class="number">1</span> = x * factorial (x - <span class="number">1</span>)</span><br><span class="line">        | <span class="keyword">otherwise</span> = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h3 id="高效地处理递归，元祖和列表-gt-Example-斐波那契序列问题"><a href="#高效地处理递归，元祖和列表-gt-Example-斐波那契序列问题" class="headerlink" title="高效地处理递归，元祖和列表 -&gt; Example: 斐波那契序列问题"></a>高效地处理递归，元祖和列表 -&gt; Example: 斐波那契序列问题</h3><h4 id="不够高效的实现：模式匹配"><a href="#不够高效的实现：模式匹配" class="headerlink" title="不够高效的实现：模式匹配"></a>不够高效的实现：模式匹配</h4><figure class="highlight maxima"><table><tr><td class="code"><pre><span class="line">./<span class="built_in">fib</span>.hs</span><br><span class="line">module Main where</span><br><span class="line">    <span class="built_in">fib</span> :: Integer -&gt; Integer</span><br><span class="line">    <span class="built_in">fib</span> <span class="number">0</span> = <span class="number">1</span></span><br><span class="line">    <span class="built_in">fib</span> <span class="number">1</span> = <span class="number">1</span></span><br><span class="line">    <span class="built_in">fib</span> x = <span class="built_in">fib</span> (x - <span class="number">1</span>) + <span class="built_in">fib</span> (x - <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="高效实现：利用元组，转换为尾递归"><a href="#高效实现：利用元组，转换为尾递归" class="headerlink" title="高效实现：利用元组，转换为尾递归"></a>高效实现：利用元组，转换为尾递归</h4><figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">./fib_tuple.hs</span><br><span class="line"><span class="keyword">module</span> Main <span class="keyword">where</span></span><br><span class="line">    fibTuple :: (<span class="type">Integer</span>, <span class="type">Integer</span>, <span class="type">Integer</span>) -&gt; (<span class="type">Integer</span>, <span class="type">Integer</span>, <span class="type">Integer</span>)</span><br><span class="line">    fibTuple (x, y, 0) = (x, y, 0)</span><br><span class="line">    fibTuple (x, y, index) = fibTuple (y, x + y, index - 1)</span><br><span class="line"></span><br><span class="line">    fibResult :: (<span class="type">Integer</span>, <span class="type">Integer</span>, <span class="type">Integer</span>) -&gt; Integer</span><br><span class="line">    fibResult (x, y, z) = x</span><br><span class="line"></span><br><span class="line">    fib :: Integer -&gt; Integer</span><br><span class="line">    fib x = fibResult (fibTuple (0, 1, x))</span><br></pre></td></tr></table></figure>
+<h4 id="利用函数的组合"><a href="#利用函数的组合" class="headerlink" title="利用函数的组合"></a>利用函数的组合</h4><figure class="highlight julia"><table><tr><td class="code"><pre><span class="line">./fib_pair.hs</span><br><span class="line"><span class="keyword">module</span> Main where</span><br><span class="line">    fibNextPair <span class="type">::</span> (<span class="built_in">Integer</span>, <span class="built_in">Integer</span>) -&gt; (<span class="built_in">Integer</span>, <span class="built_in">Integer</span>)</span><br><span class="line">    fibNextPair (x, y) = (y, x + y)</span><br><span class="line"></span><br><span class="line">    fibNthPair <span class="type">::</span> <span class="built_in">Integer</span> -&gt; (<span class="built_in">Integer</span>, <span class="built_in">Integer</span>)</span><br><span class="line">    fibNthPair <span class="number">1</span> = (<span class="number">1</span>, <span class="number">1</span>)</span><br><span class="line">    fibNthPair n = fibNextPair (fibNthPair (n - <span class="number">1</span>))</span><br><span class="line"></span><br><span class="line">    fib <span class="type">::</span> <span class="built_in">Integer</span> -&gt; <span class="built_in">Integer</span></span><br><span class="line">    fib = fst . fibNthPair</span><br></pre></td></tr></table></figure>
+<h2 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h2><h3 id="匿名函数（lambda）"><a href="#匿名函数（lambda）" class="headerlink" title="匿名函数（lambda）"></a>匿名函数（lambda）</h3><figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">Prelude&gt; (<span class="string">\x</span> <span class="function">-&gt;</span> x ++ <span class="string">"World!"</span>) <span class="string">"Hello "</span></span><br><span class="line"><span class="string">"Hello World!"</span></span><br></pre></td></tr></table></figure>
+<h3 id="map"><a href="#map" class="headerlink" title="map"></a>map</h3><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line">-- map + lamda</span><br><span class="line">Prelude&gt; map (\x -&gt; x * x) [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">[<span class="number">1</span>,<span class="number">4</span>,<span class="number">9</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line">*Main&gt; filter odd [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line">[<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="flodl-foldr"><a href="#flodl-foldr" class="headerlink" title="flodl, foldr"></a>flodl, foldr</h3><figure class="highlight coq"><table><tr><td class="code"><pre><span class="line">Prelude&gt; foldl (\x carryOver -&gt; carryOver + x) <span class="number">0</span> [<span class="number">1</span> .. <span class="number">10</span>]  — <span class="built_in">fold</span> from <span class="built_in">left</span> to <span class="built_in">right</span></span><br><span class="line"><span class="number">55</span> </span><br><span class="line">Prelude&gt; foldr (\x carryOver -&gt; carryOver + x) <span class="number">0</span> [<span class="number">1</span> .. <span class="number">10</span>]  — <span class="built_in">fold</span> from <span class="built_in">right</span> to <span class="built_in">left</span></span><br><span class="line"><span class="number">55</span></span><br></pre></td></tr></table></figure>
+<h4 id="foldl的一种简化表达-fold1"><a href="#foldl的一种简化表达-fold1" class="headerlink" title="foldl的一种简化表达: fold1"></a>foldl的一种简化表达: fold1</h4><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line">Prelude&gt; foldl1 (+) [<span class="number">1</span> .. <span class="number">10</span>]</span><br><span class="line"><span class="number">55</span></span><br></pre></td></tr></table></figure>
+<h2 id="Advanced-Concepts"><a href="#Advanced-Concepts" class="headerlink" title="Advanced Concepts "></a>Advanced Concepts </h2><h3 id="偏应用函数：将多参数的函数拆分为多个只有一个参数的函数"><a href="#偏应用函数：将多参数的函数拆分为多个只有一个参数的函数" class="headerlink" title="偏应用函数：将多参数的函数拆分为多个只有一个参数的函数"></a>偏应用函数：将多参数的函数拆分为多个只有一个参数的函数</h3><figure class="highlight livecodeserver"><table><tr><td class="code"><pre><span class="line"><span class="comment">-- 发现偏应用</span></span><br><span class="line">Prelude&gt; let prod x y = x * y</span><br><span class="line">Prelude&gt; :t prod</span><br><span class="line">prod :: Num <span class="keyword">a</span> =&gt; <span class="keyword">a</span> -&gt; <span class="keyword">a</span> -&gt; <span class="keyword">a</span>        <span class="comment">-- 看到两个箭头了吗, prod x y其实是通过(prod x ) y实现的</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight coq"><table><tr><td class="code"><pre><span class="line">-- 偏应用：绑定函数的一部分参数</span><br><span class="line">Prelude&gt; <span class="keyword">let</span> prod x y = x * y</span><br><span class="line">Prelude&gt; <span class="keyword">let</span> <span class="built_in">double</span> = prod <span class="number">2</span></span><br><span class="line">Prelude&gt; :t <span class="built_in">double</span></span><br><span class="line"><span class="built_in">double</span> :: Num a =&gt; a -&gt; a</span><br></pre></td></tr></table></figure>
+<p>偏应用函数的运算过程称为柯里化</p>
 <ul>
 <li>prod 2 4 实际上计算(prod 2) 4</li>
 <li>几乎每个Haskell的多参数函数都是柯里化的</li>
 </ul>
-<h3 id="惰性求值-仅仅完成一部分必要的计算"><a href="#惰性求值-仅仅完成一部分必要的计算" class="headerlink" title="惰性求值: 仅仅完成一部分必要的计算"></a>惰性求值: 仅仅完成一部分必要的计算</h3><pre><code>-- 可以构造无穷列表
-Prelude&gt; take 5 [1..]
-[1,2,3,4,5]
-</code></pre><h3 id="类型系统"><a href="#类型系统" class="headerlink" title="类型系统"></a>类型系统</h3><h4 id="原生类型"><a href="#原生类型" class="headerlink" title="原生类型"></a>原生类型</h4><pre><code>Prelude&gt; :set +t
-Prelude&gt; &#39;c&#39;
-&#39;c&#39;
-it :: Char
-Prelude&gt; &quot;abc&quot;
-&quot;abc&quot;
-it :: [Char]
-Prelude&gt; [&#39;a&#39;,&#39;b&#39;,&#39;c&#39;]
-&quot;abc&quot;
-it :: [Char]
-Prelude&gt; True
-True
-it :: Bool
-</code></pre><h4 id="自定义类型（利用data关键字定义）"><a href="#自定义类型（利用data关键字定义）" class="headerlink" title="自定义类型（利用data关键字定义）"></a>自定义类型（利用data关键字定义）</h4><pre><code>./cards-with-show.hs
-module Main where
-    data Suit = Spades | Hearts deriving  (Show)
-    data Rank = Ten | Jack | Queen | King | Ace deriving (Show)
-    type Card = (Rank, Suit)
-    type Hand = [Card]   
-
-    value :: Rank -&gt; Integer
-    value Ten = 1
-    value Jack = 2
-    value Queen = 3
-    value King = 4
-    value Ace = 5
-
-    cardValue :: Card -&gt; Integer
-    cardValue (rank, suit) = value rank
-</code></pre><p>注：deriving用于函数的继承，代码段中继承了show函数用于在控制台中显示自定义数据类型Suit和Rank</p>
-<pre><code>Prelude&gt; :load cards-with-show.hs
-[1 of 1] Compiling Main             ( cards-with-show.hs, interpreted )
-Ok, modules loaded: Main.
-*Main&gt; Hearts
-Spades
-it :: Suit
-*Main&gt; Ten
-Ten
-it :: Rank
-*Main&gt; cardValue (Ten, Hearts)
-1
-</code></pre><h4 id="类型模板-gt-实现函数的多态以及数据类型的多态"><a href="#类型模板-gt-实现函数的多态以及数据类型的多态" class="headerlink" title="类型模板 -&gt; 实现函数的多态以及数据类型的多态"></a>类型模板 -&gt; 实现函数的多态以及数据类型的多态</h4><pre><code>./type_template.hs
-module Main where
-    backwards :: [a] -&gt; [a]
-    backwards [] = []
-    backwards (h:t) = backwards t ++ [h]
-</code></pre><h4 id="自定义类型模板"><a href="#自定义类型模板" class="headerlink" title="自定义类型模板"></a>自定义类型模板</h4><pre><code>./userdefine_type_template.hs
-module Main where
-    data Triplet a = Trio a a a deriving (Show)
-</code></pre><pre><code>*Main&gt; :load userdefine_type_template.hs
-[1 of 1] Compiling Main             ( userdefine_type_template.hs, interpreted )
-Ok, modules loaded: Main.
-*Main&gt; :t Trio &#39;a&#39; &#39;b&#39; &#39;c&#39;
-Trio &#39;a&#39; &#39;b&#39; &#39;c&#39; :: Triplet Char
-</code></pre><p>注：Triplet: 类型构造器，Trio: 数据构造器</p>
-<h4 id="自定义递归类型"><a href="#自定义递归类型" class="headerlink" title="自定义递归类型"></a>自定义递归类型</h4><pre><code>./tree_depth.hs
-module Main where
-    data Tree a = Children [Tree a] | Leaf a deriving (Show)
-
-    -- define a function to calculate the depth of a tree
-    depth (Leaf _) = 1
-    depth (Children c) = 1 + maximum (map depth c)
-</code></pre><pre><code>*Main&gt; :load tree_depth.hs
-[1 of 1] Compiling Main             ( tree_depth.hs, interpreted )
-Ok, modules loaded: Main.
-*Main&gt; let tree = Children[Leaf 1, Children [Leaf 2, Leaf 3]]
-*Main&gt; tree
-Children [Leaf 1,Children [Leaf 2,Leaf 3]]
-*Main&gt; depth tree
-3
-</code></pre><h4 id="类"><a href="#类" class="headerlink" title="类"></a>类</h4><ul>
+<h3 id="惰性求值-仅仅完成一部分必要的计算"><a href="#惰性求值-仅仅完成一部分必要的计算" class="headerlink" title="惰性求值: 仅仅完成一部分必要的计算"></a>惰性求值: 仅仅完成一部分必要的计算</h3><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line">-- 可以构造无穷列表</span><br><span class="line">Prelude&gt; take <span class="number">5</span> [<span class="number">1.</span>.]</span><br><span class="line">[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="类型系统"><a href="#类型系统" class="headerlink" title="类型系统"></a>类型系统</h3><h4 id="原生类型"><a href="#原生类型" class="headerlink" title="原生类型"></a>原生类型</h4><figure class="highlight julia"><table><tr><td class="code"><pre><span class="line">Prelude&gt; :set +t</span><br><span class="line">Prelude&gt; <span class="string">'c'</span></span><br><span class="line"><span class="string">'c'</span></span><br><span class="line">it <span class="type">::</span> <span class="built_in">Char</span></span><br><span class="line">Prelude&gt; <span class="string">"abc"</span></span><br><span class="line"><span class="string">"abc"</span></span><br><span class="line">it <span class="type">::</span> [<span class="built_in">Char</span>]</span><br><span class="line">Prelude&gt; [<span class="string">'a'</span>,<span class="string">'b'</span>,<span class="string">'c'</span>]</span><br><span class="line"><span class="string">"abc"</span></span><br><span class="line">it <span class="type">::</span> [<span class="built_in">Char</span>]</span><br><span class="line">Prelude&gt; True</span><br><span class="line">True</span><br><span class="line">it <span class="type">::</span> <span class="built_in">Bool</span></span><br></pre></td></tr></table></figure>
+<h4 id="自定义类型（利用data关键字定义）"><a href="#自定义类型（利用data关键字定义）" class="headerlink" title="自定义类型（利用data关键字定义）"></a>自定义类型（利用data关键字定义）</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">./cards-with-show.hs</span><br><span class="line"><span class="keyword">module</span> <span class="keyword">Main</span> <span class="keyword">where</span></span><br><span class="line">    <span class="keyword">data</span> Suit = Spades | Hearts deriving  (<span class="keyword">Show</span>)</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">Rank</span> = Ten | Jack | Queen | King | Ace deriving (<span class="keyword">Show</span>)</span><br><span class="line">    <span class="keyword">type</span> Card = (<span class="keyword">Rank</span>, Suit)</span><br><span class="line">    <span class="keyword">type</span> Hand = [Card]   </span><br><span class="line">     </span><br><span class="line">    <span class="keyword">value</span> :: <span class="keyword">Rank</span> -&gt; <span class="built_in">Integer</span></span><br><span class="line">    <span class="keyword">value</span> Ten = <span class="number">1</span></span><br><span class="line">    <span class="keyword">value</span> Jack = <span class="number">2</span></span><br><span class="line">    <span class="keyword">value</span> Queen = <span class="number">3</span></span><br><span class="line">    <span class="keyword">value</span> King = <span class="number">4</span></span><br><span class="line">    <span class="keyword">value</span> Ace = <span class="number">5</span></span><br><span class="line">    </span><br><span class="line">    cardValue :: Card -&gt; <span class="built_in">Integer</span></span><br><span class="line">    cardValue (<span class="keyword">rank</span>, suit) = <span class="keyword">value</span> <span class="keyword">rank</span></span><br></pre></td></tr></table></figure>
+<p>注：deriving用于函数的继承，代码段中继承了show函数用于在控制台中显示自定义数据类型Suit和Rank</p>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">Prelude&gt; :load cards-<span class="keyword">with</span>-show.hs</span><br><span class="line">[<span class="number">1</span> <span class="keyword">of</span> <span class="number">1</span>] Compiling Main             ( cards-<span class="keyword">with</span>-show.hs, interpreted )</span><br><span class="line">Ok, modules loaded: Main.</span><br><span class="line">*Main&gt; Hearts</span><br><span class="line">Spades</span><br><span class="line"><span class="keyword">it</span> :: Suit</span><br><span class="line">*Main&gt; Ten</span><br><span class="line">Ten</span><br><span class="line"><span class="keyword">it</span> :: Rank</span><br><span class="line">*Main&gt; cardValue (Ten, Hearts)</span><br><span class="line"><span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h4 id="类型模板-gt-实现函数的多态以及数据类型的多态"><a href="#类型模板-gt-实现函数的多态以及数据类型的多态" class="headerlink" title="类型模板 -&gt; 实现函数的多态以及数据类型的多态"></a>类型模板 -&gt; 实现函数的多态以及数据类型的多态</h4><figure class="highlight accesslog"><table><tr><td class="code"><pre><span class="line">./type_template.hs</span><br><span class="line">module Main where</span><br><span class="line">    backwards :: <span class="string">[a]</span> -&gt; <span class="string">[a]</span></span><br><span class="line">    backwards <span class="string">[]</span> = <span class="string">[]</span></span><br><span class="line">    backwards (h:t) = backwards t ++ <span class="string">[h]</span></span><br></pre></td></tr></table></figure>
+<h4 id="自定义类型模板"><a href="#自定义类型模板" class="headerlink" title="自定义类型模板"></a>自定义类型模板</h4><figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">./userdefine_type_template<span class="selector-class">.hs</span></span><br><span class="line">module Main where</span><br><span class="line">    data Triplet <span class="selector-tag">a</span> = Trio <span class="selector-tag">a</span> <span class="selector-tag">a</span> <span class="selector-tag">a</span> deriving (Show)</span><br></pre></td></tr></table></figure>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">*Main&gt; :load userdefine_type_template<span class="selector-class">.hs</span></span><br><span class="line">[<span class="number">1</span> of <span class="number">1</span>] Compiling Main             ( userdefine_type_template<span class="selector-class">.hs</span>, interpreted )</span><br><span class="line">Ok, modules loaded: Main.</span><br><span class="line">*Main&gt; :t Trio <span class="string">'a'</span> <span class="string">'b'</span> <span class="string">'c'</span></span><br><span class="line">Trio <span class="string">'a'</span> <span class="string">'b'</span> <span class="string">'c'</span> :: Triplet Char</span><br></pre></td></tr></table></figure>
+<p>注：Triplet: 类型构造器，Trio: 数据构造器</p>
+<h4 id="自定义递归类型"><a href="#自定义递归类型" class="headerlink" title="自定义递归类型"></a>自定义递归类型</h4><figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">./tree_depth.hs</span><br><span class="line"><span class="keyword">module</span> Main <span class="keyword">where</span></span><br><span class="line">    data Tree a = Children [Tree a] | Leaf a deriving (<span class="type">Show</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- define a function to calculate the depth of a tree</span></span><br><span class="line">    depth (<span class="type">Leaf</span> _) = 1</span><br><span class="line">    depth (<span class="type">Children</span> c) = 1 + maximum (map depth c)</span><br></pre></td></tr></table></figure>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">*<span class="symbol">Main</span>&gt; :load tree_depth.hs</span><br><span class="line">[<span class="number">1</span> of <span class="number">1</span>] <span class="symbol">Compiling</span> <span class="symbol">Main</span>             ( tree_depth.hs, interpreted )</span><br><span class="line"><span class="symbol">Ok</span>, modules loaded: <span class="symbol">Main</span>.</span><br><span class="line">*<span class="symbol">Main</span>&gt; let tree = <span class="symbol">Children</span>[<span class="symbol">Leaf</span> <span class="number">1</span>, <span class="symbol">Children</span> [<span class="symbol">Leaf</span> <span class="number">2</span>, <span class="symbol">Leaf</span> <span class="number">3</span>]]</span><br><span class="line">*<span class="symbol">Main</span>&gt; tree</span><br><span class="line"><span class="symbol">Children</span> [<span class="symbol">Leaf</span> <span class="number">1</span>,<span class="symbol">Children</span> [<span class="symbol">Leaf</span> <span class="number">2</span>,<span class="symbol">Leaf</span> <span class="number">3</span>]]</span><br><span class="line">*<span class="symbol">Main</span>&gt; depth tree</span><br><span class="line"><span class="number">3</span></span><br></pre></td></tr></table></figure>
+<h4 id="类"><a href="#类" class="headerlink" title="类"></a>类</h4><ul>
 <li>为了便于实现函数的继承、重载、多态</li>
 <li>不同于面向对象中的Class：对象是类型，不涉及数据</li>
 </ul>
-<pre><code>-- 内置的Eq类，实现了相等判断
-class Eq a where
-    (==), (/=) :: a -&gt; a -&gt; Bool
-
-    x /= y  =  not (x == y)
-    x == y  =  not (x /= y)
-</code></pre><p><img src="/img/haskell-class-hierarchy.png" alt="Class Hierarchy in Haskell"></p>
+<figure class="highlight xl"><table><tr><td class="code"><pre><span class="line">-- 内置的Eq类，实现了相等判断</span><br><span class="line">class Eq a <span class="keyword">where</span></span><br><span class="line">    (==), (/=) :: <span class="function"><span class="title">a</span> -&gt;</span> <span class="function"><span class="title">a</span> -&gt;</span> Bool</span><br><span class="line"></span><br><span class="line">    x /= y  =  <span class="built_in">not</span> (x == y)</span><br><span class="line">    x == y  =  <span class="built_in">not</span> (x /= y)</span><br></pre></td></tr></table></figure>
+<p><img src="/img/haskell-class-hierarchy.png" alt="Class Hierarchy in Haskell"></p>
 <h2 id="Monad"><a href="#Monad" class="headerlink" title="Monad"></a>Monad</h2><ul>
 <li>本质上，一个Monad是一个函数组合</li>
 <li>以特定属性的方式组合函数替代原来的嵌套调用，</li>
@@ -571,49 +439,12 @@ class Eq a where
 <li>基于moand实现的do语法可以支持命令式风格的编程 </li>
 <li>Maybe monad可以用来进行错误处理</li>
 </ul>
-<h3 id="Example-1：醉汉问题"><a href="#Example-1：醉汉问题" class="headerlink" title="Example 1：醉汉问题"></a>Example 1：醉汉问题</h3><h4 id="嵌套方式实现"><a href="#嵌套方式实现" class="headerlink" title="嵌套方式实现"></a>嵌套方式实现</h4><pre><code>./drunken-pirate-without-monad.hs
-module Main where
-    stagger :: (Num t) =&gt; t -&gt; t
-    stagger d = d + 2
-    crawl d = d + 1
-    — 嵌套方式实现
-    treasureMap d = crawl ( stagger ( stagger d ) )
-
-*Main&gt; treasureMap 0
-5
-it :: Num a =&gt; a
-</code></pre><h4 id="利用Monad实现"><a href="#利用Monad实现" class="headerlink" title="利用Monad实现"></a>利用Monad实现</h4><pre><code>./drunken-pirate-monad.hs
-module Main where
-    data Position t = Position t deriving (Show)   -- 构造一个容器让它来持有一个函数
-    stagger (Position d) = Position (d + 2)
-    crawl (Position d) = Position (d + 1)
-
-    rtn x = x          -- rtn函数将函数包装到monad中，内置的monad函数使用return
-    x &gt;&gt;== f = f x     -- &gt;&gt;==函数负责将函数从monad中解包，内置的monad函数使用&gt;&gt;=
-
-    -- 利用monad以函数组合的方式实现
-    treasureMap pos = pos &gt;&gt;==
-                      stagger &gt;&gt;==
-                      stagger &gt;&gt;==
-                      crawl &gt;&gt;==
-                      rtn
-</code></pre><pre><code>*Main&gt; treasureMap (Position 0)
-Position 5
-it :: Num t =&gt; Position t
-</code></pre><h3 id="Example-2-利用do实现I-O-monad"><a href="#Example-2-利用do实现I-O-monad" class="headerlink" title="Example 2: 利用do实现I/O monad"></a>Example 2: 利用do实现I/O monad</h3><pre><code> ./io-monad.hs
-module Main where
-    tryIo = do putStr &quot;Enter your name: &quot;;
-                line &lt;- getLine;
-                let { backwards = reverse line };
-                return (&quot;Hello, Your name backwards is &quot; ++ backwards)
-</code></pre><pre><code>Prelude&gt; :load io-monad.hs
-[1 of 1] Compiling Main             ( io-monad.hs, interpreted )
-Ok, modules loaded: Main.
-*Main&gt; tryIo
-Enter your name: abc
-&quot;Hello, Your name backwards is cba&quot;
-it :: [Char]
-</code></pre><h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
+<h3 id="Example-1：醉汉问题"><a href="#Example-1：醉汉问题" class="headerlink" title="Example 1：醉汉问题"></a>Example 1：醉汉问题</h3><h4 id="嵌套方式实现"><a href="#嵌套方式实现" class="headerlink" title="嵌套方式实现"></a>嵌套方式实现</h4><figure class="highlight clean"><table><tr><td class="code"><pre><span class="line">./drunken-pirate-without-monad.hs</span><br><span class="line"><span class="keyword">module</span> Main <span class="keyword">where</span></span><br><span class="line">    stagger :: (Num t) =&gt; t -&gt; t</span><br><span class="line">    stagger d = d + <span class="number">2</span></span><br><span class="line">    crawl d = d + <span class="number">1</span></span><br><span class="line">    — 嵌套方式实现</span><br><span class="line">    treasureMap d = crawl ( stagger ( stagger d ) )</span><br><span class="line"></span><br><span class="line">*Main&gt; treasureMap <span class="number">0</span></span><br><span class="line"><span class="number">5</span></span><br><span class="line">it :: Num a =&gt; a</span><br></pre></td></tr></table></figure>
+<h4 id="利用Monad实现"><a href="#利用Monad实现" class="headerlink" title="利用Monad实现"></a>利用Monad实现</h4><figure class="highlight elm"><table><tr><td class="code"><pre><span class="line">./drunken-pirate-monad.hs</span><br><span class="line"><span class="keyword">module</span> Main <span class="keyword">where</span></span><br><span class="line">    data Position t = Position t deriving (<span class="type">Show</span>)   <span class="comment">-- 构造一个容器让它来持有一个函数</span></span><br><span class="line">    stagger (<span class="type">Position</span> d) = Position (d + 2)</span><br><span class="line">    crawl (<span class="type">Position</span> d) = Position (d + 1)</span><br><span class="line"></span><br><span class="line">    rtn x = x          <span class="comment">-- rtn函数将函数包装到monad中，内置的monad函数使用return</span></span><br><span class="line">    x &gt;&gt;== f = f x     <span class="comment">-- &gt;&gt;==函数负责将函数从monad中解包，内置的monad函数使用&gt;&gt;=</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">-- 利用monad以函数组合的方式实现</span></span><br><span class="line">    treasureMap pos = pos &gt;&gt;==</span><br><span class="line">                      stagger &gt;&gt;==</span><br><span class="line">                      stagger &gt;&gt;==</span><br><span class="line">                      crawl &gt;&gt;==</span><br><span class="line">                      rtn</span><br></pre></td></tr></table></figure>
+<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line">*Main&gt; treasureMap (<span class="keyword">Position</span> <span class="number">0</span>)</span><br><span class="line"><span class="keyword">Position</span> <span class="number">5</span></span><br><span class="line">it :: Num t =&gt; <span class="keyword">Position</span> t</span><br></pre></td></tr></table></figure>
+<h3 id="Example-2-利用do实现I-O-monad"><a href="#Example-2-利用do实现I-O-monad" class="headerlink" title="Example 2: 利用do实现I/O monad"></a>Example 2: 利用do实现I/O monad</h3><figure class="highlight gauss"><table><tr><td class="code"><pre><span class="line"> ./io-monad.hs</span><br><span class="line">module Main <span class="built_in">where</span></span><br><span class="line">    tryIo = <span class="keyword">do</span> putStr <span class="string">"Enter your name: "</span>;</span><br><span class="line">                <span class="keyword">line</span> &lt;- getLine;</span><br><span class="line">                <span class="keyword">let</span> &#123; backwards = reverse <span class="keyword">line</span> &#125;;</span><br><span class="line">                <span class="keyword">return</span> (<span class="string">"Hello, Your name backwards is "</span> ++ backwards)</span><br></pre></td></tr></table></figure>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-tag">Prelude</span>&gt; <span class="selector-pseudo">:load</span> <span class="selector-tag">io-monad</span><span class="selector-class">.hs</span></span><br><span class="line"><span class="selector-attr">[1 of 1]</span> <span class="selector-tag">Compiling</span> <span class="selector-tag">Main</span>             ( <span class="selector-tag">io-monad</span><span class="selector-class">.hs</span>, <span class="selector-tag">interpreted</span> )</span><br><span class="line"><span class="selector-tag">Ok</span>, <span class="selector-tag">modules</span> <span class="selector-tag">loaded</span>: <span class="selector-tag">Main</span>.</span><br><span class="line">*<span class="selector-tag">Main</span>&gt; <span class="selector-tag">tryIo</span></span><br><span class="line"><span class="selector-tag">Enter</span> <span class="selector-tag">your</span> <span class="selector-tag">name</span>: <span class="selector-tag">abc</span></span><br><span class="line">"<span class="selector-tag">Hello</span>, <span class="selector-tag">Your</span> <span class="selector-tag">name</span> <span class="selector-tag">backwards</span> <span class="selector-tag">is</span> <span class="selector-tag">cba</span>"</span><br><span class="line"><span class="selector-tag">it</span> :: <span class="selector-attr">[Char]</span></span><br></pre></td></tr></table></figure>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
 <li>《七周七语言》，<a href="http://book.douban.com/subject/10555435/" target="_blank" rel="external">http://book.douban.com/subject/10555435/</a></li>
 </ol>
 <center><br><img src="/img/58a1d13a6c923c68fc000003.png" alt="卧舟杂谈"><br>订阅我的微信公众号，您将即时收到新博客提醒！<br></center>
@@ -696,7 +527,7 @@ it :: [Char]
   <div class="comments" id="comments">
     
       <div class="ds-thread" data-thread-key="2015/07/19/Learning-Haskell-a-pure-functional-programming-language/"
-           data-title="Learning Haskell: a pure functional programming language" data-url="http://zhouhualei.github.io/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/">
+           data-title="Learning Haskell: a pure functional programming language" data-url="http://warrentalk.site/2015/07/19/Learning-Haskell-a-pure-functional-programming-language/">
       </div>
     
   </div>

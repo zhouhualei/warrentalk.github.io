@@ -91,17 +91,17 @@
 这一篇作为全系列的开篇，主要来对一些基本概念做些介绍，相信很多人都跟之前的我一样，觉得元编程是一种高大上的技术，但">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Metaprogramming Ruby, Part 1: Introduction">
-<meta property="og:url" content="http://zhouhualei.github.io/2015/02/04/metaprogramming-ruby-part-1-introduction/index.html">
+<meta property="og:url" content="http://warrentalk.site/2015/02/04/metaprogramming-ruby-part-1-introduction/index.html">
 <meta property="og:site_name" content="WarrenTalk">
 <meta property="og:description" content="说在前面最近在研读《Metaprogramming Ruby》这本书，爱不释手，简直要拍案叫绝了。这本书在很多点上都完全颠覆了我对Ruby肤浅的理解。所以，想开Metaprogramming Ruby系列来进行记录总结，感兴趣的童鞋直接读原书就好，我这里只是会简要概括书中的知识体系。
 这一篇作为全系列的开篇，主要来对一些基本概念做些介绍，相信很多人都跟之前的我一样，觉得元编程是一种高大上的技术，但">
-<meta property="og:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta property="og:image" content="http://warrentalk.site/img/58a1d13a6c923c68fc000003.png">
 <meta property="og:updated_time" content="2017-02-13T16:28:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Metaprogramming Ruby, Part 1: Introduction">
 <meta name="twitter:description" content="说在前面最近在研读《Metaprogramming Ruby》这本书，爱不释手，简直要拍案叫绝了。这本书在很多点上都完全颠覆了我对Ruby肤浅的理解。所以，想开Metaprogramming Ruby系列来进行记录总结，感兴趣的童鞋直接读原书就好，我这里只是会简要概括书中的知识体系。
 这一篇作为全系列的开篇，主要来对一些基本概念做些介绍，相信很多人都跟之前的我一样，觉得元编程是一种高大上的技术，但">
-<meta name="twitter:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta name="twitter:image" content="http://warrentalk.site/img/58a1d13a6c923c68fc000003.png">
 
 
 
@@ -129,7 +129,7 @@
 
 
 
-  <link rel="canonical" href="http://zhouhualei.github.io/2015/02/04/metaprogramming-ruby-part-1-introduction/"/>
+  <link rel="canonical" href="http://warrentalk.site/2015/02/04/metaprogramming-ruby-part-1-introduction/"/>
 
 
 
@@ -282,7 +282,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="http://zhouhualei.github.io/2015/02/04/metaprogramming-ruby-part-1-introduction/">
+  <link itemprop="mainEntityOfPage" href="http://warrentalk.site/2015/02/04/metaprogramming-ruby-part-1-introduction/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Warren Zhou">
@@ -395,26 +395,7 @@
 <li>Language construct（语言构件）: 类、变量、方法等构成代码的组件</li>
 <li>Introspection（内省）：运行时读取语言构件</li>
 </ol>
-<pre><code class="ruby"># An simple example to explain introspection
-class SomeClass
-  def initialize(text)
-    @text = text
-  end
-
-  def welcome
-    @text
-  end
-end
-
-2.0.0-p247 :005 &gt; object = SomeClass.new(&quot;Hello Metaprogramming&quot;)
-=&gt; #&lt;SomeClass:0x007fc5948c9608 @text=&quot;Hello Metaprogramming&quot;&gt; 
-2.0.0-p247 :006 &gt; object.class
-=&gt; SomeClass
-2.0.0-p247 :008 &gt; object.class.instance_methods(false)
-=&gt; [:welcome]
-2.0.0-p247 :009 &gt; object.instance_variables
-=&gt; [:@text]
-</code></pre>
+<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="comment"># An simple example to explain introspection</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SomeClass</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(text)</span></span></span><br><span class="line">    @text = text</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">welcome</span></span></span><br><span class="line">    @text</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="meta">2.0.0-p247 :005 &gt;</span> object = SomeClass.new(<span class="string">"Hello Metaprogramming"</span>)</span><br><span class="line">=&gt; #&lt;SomeClass:0x007fc5948c9608 @text="Hello Metaprogramming"&gt; </span><br><span class="line"><span class="meta">2.0.0-p247 :006 &gt;</span> object.class</span><br><span class="line">=&gt; SomeClass</span><br><span class="line"><span class="meta">2.0.0-p247 :008 &gt;</span> object.class.instance_methods(false)</span><br><span class="line">=&gt; [<span class="symbol">:welcome</span>]</span><br><span class="line"><span class="meta">2.0.0-p247 :009 &gt;</span> object.instance_variables</span><br><span class="line">=&gt; [<span class="symbol">:</span>@text]</span><br></pre></td></tr></table></figure>
 <h2 id="什么是元编程（Metaprogramming）？"><a href="#什么是元编程（Metaprogramming）？" class="headerlink" title="什么是元编程（Metaprogramming）？"></a>什么是元编程（Metaprogramming）？</h2><pre><code>粗略地说，支持编写能够编写代码的代码
 确切地说，支持编写能够在运行时操纵（读写）语言构件的代码
 </code></pre><p>具体可细分为静态元编程和动态元编程，前者主要通过编译时代码生成器和编译器实现（属于广义的元编程范畴），后者通过运行时操纵代码实现，本文中的元编程主要介绍后者，即狭义上的元编程（因为Ruby没有编译这个阶段嘛）</p>
@@ -526,7 +507,7 @@ end
   <div class="comments" id="comments">
     
       <div class="ds-thread" data-thread-key="2015/02/04/metaprogramming-ruby-part-1-introduction/"
-           data-title="Metaprogramming Ruby, Part 1: Introduction" data-url="http://zhouhualei.github.io/2015/02/04/metaprogramming-ruby-part-1-introduction/">
+           data-title="Metaprogramming Ruby, Part 1: Introduction" data-url="http://warrentalk.site/2015/02/04/metaprogramming-ruby-part-1-introduction/">
       </div>
     
   </div>

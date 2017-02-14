@@ -90,16 +90,16 @@
 <meta name="description" content="HashMap与ConcurrentHashMap众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题">
-<meta property="og:url" content="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/index.html">
+<meta property="og:url" content="http://warrentalk.site/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/index.html">
 <meta property="og:site_name" content="WarrenTalk">
 <meta property="og:description" content="HashMap与ConcurrentHashMap众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。">
-<meta property="og:image" content="http://zhouhualei.github.io/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png">
-<meta property="og:image" content="http://zhouhualei.github.io/img/58a1d13a6c923c68fc000003.png">
+<meta property="og:image" content="http://warrentalk.site/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png">
+<meta property="og:image" content="http://warrentalk.site/img/58a1d13a6c923c68fc000003.png">
 <meta property="og:updated_time" content="2017-02-13T16:26:39.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题">
 <meta name="twitter:description" content="HashMap与ConcurrentHashMap众所周知，HashMap无法做到线程安全，在某些特定的场景下甚至会出现死循环的情况。而ConcurrentHashMap是HashMap的并发版本，它能够做到线程安全。">
-<meta name="twitter:image" content="http://zhouhualei.github.io/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png">
+<meta name="twitter:image" content="http://warrentalk.site/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png">
 
 
 
@@ -127,7 +127,7 @@
 
 
 
-  <link rel="canonical" href="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/"/>
+  <link rel="canonical" href="http://warrentalk.site/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/"/>
 
 
 
@@ -280,7 +280,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/">
+  <link itemprop="mainEntityOfPage" href="http://warrentalk.site/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Warren Zhou">
@@ -393,157 +393,12 @@
 </blockquote>
 <h2 id="迭代器的一致性问题"><a href="#迭代器的一致性问题" class="headerlink" title="迭代器的一致性问题"></a>迭代器的一致性问题</h2><p>Java容器类的迭代操作最标准的方式就是使用Iterator，在并发修改的情况下，Iterator的一致性问题就暴露出来了。这种情况下，强一致性的表现就是”及时失败“，抛出大家并不陌生的ConcurrentModificationException。如果只支持弱一致性呢，它就会忽略这个不一致性，允许容器在迭代期间被并发修改。</p>
 <h2 id="强一致性是如何实现的"><a href="#强一致性是如何实现的" class="headerlink" title="强一致性是如何实现的"></a>强一致性是如何实现的</h2><p>HashMap的强一致性是通过引入计数器实现的。</p>
-<pre><code class="java">    /**
-     * The number of times this HashMap has been structurally modified
-     * Structural modifications are those that change the number of mappings in
-     * the HashMap or otherwise modify its internal structure (e.g.,
-     * rehash).  This field is used to make iterators on Collection-views of
-     * the HashMap fail-fast.  (See ConcurrentModificationException).
-     */
-    transient int modCount;
-</code></pre>
-<p>通过引入一个名为modCount的计数器，当有任何修改容器的操作发生后，这个计数器就会自增。以put方法为例：</p>
-<pre><code class="java">    public V put(K key, V value) {
-        if (table == EMPTY_TABLE) {
-            inflateTable(threshold);
-        }
-        if (key == null)
-            return putForNullKey(value);
-        int hash = hash(key);
-        int i = indexFor(hash, table.length);
-        for (Entry&lt;K,V&gt; e = table[i]; e != null; e = e.next) {
-            Object k;
-            if (e.hash == hash &amp;&amp; ((k = e.key) == key || key.equals(k))) {
-                V oldValue = e.value;
-                e.value = value;
-                e.recordAccess(this);
-                return oldValue;
-            }
-        }
-
-        modCount++;
-        addEntry(hash, key, value, i);
-        return null;
-    }
-</code></pre>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span><br><span class="line"> * The number of times this HashMap has been structurally modified</span><br><span class="line"> * Structural modifications are those that change the number of mappings in</span><br><span class="line"> * the HashMap or otherwise modify its internal structure (e.g.,</span><br><span class="line"> * rehash).  This field is used to make iterators on Collection-views of</span><br><span class="line"> * the HashMap fail-fast.  (See ConcurrentModificationException).</span><br><span class="line"> */</span></span><br><span class="line"><span class="keyword">transient</span> <span class="keyword">int</span> modCount;</span><br></pre></td></tr></table></figure>
+<p>通过引入一个名为modCount的计数器，当有任何修改容器的操作发生后，这个计数器就会自增。以put方法为例：<br><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">put</span><span class="params">(K key, V value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (table == EMPTY_TABLE) &#123;</span><br><span class="line">        inflateTable(threshold);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (key == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> putForNullKey(value);</span><br><span class="line">    <span class="keyword">int</span> hash = hash(key);</span><br><span class="line">    <span class="keyword">int</span> i = indexFor(hash, table.length);</span><br><span class="line">    <span class="keyword">for</span> (Entry&lt;K,V&gt; e = table[i]; e != <span class="keyword">null</span>; e = e.next) &#123;</span><br><span class="line">        Object k;</span><br><span class="line">        <span class="keyword">if</span> (e.hash == hash &amp;&amp; ((k = e.key) == key || key.equals(k))) &#123;</span><br><span class="line">            V oldValue = e.value;</span><br><span class="line">            e.value = value;</span><br><span class="line">            e.recordAccess(<span class="keyword">this</span>);</span><br><span class="line">            <span class="keyword">return</span> oldValue;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    modCount++;</span><br><span class="line">    addEntry(hash, key, value, i);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>然后，我们再来看看HashMap中的迭代操作，以keySet()为例, 从代码中可以发现它所返回的迭代器类型为HashIterator，在HashIterator的初始化中，会将modCount赋值给expectedModCount, 如果在随后的迭代操作中发现两者不一致就会立即抛出ConcurrentModificationException，这也是所谓的fast-fail。</p>
-<pre><code class="java">    public Set&lt;K&gt; keySet() {
-        Set&lt;K&gt; ks = keySet;
-        return (ks != null ? ks : (keySet = new KeySet()));
-    }
-
-    private final class KeySet extends AbstractSet&lt;K&gt; {
-        public Iterator&lt;K&gt; iterator() {
-            return newKeyIterator();
-        }
-        public int size() {
-            return size;
-        }
-        public boolean contains(Object o) {
-            return containsKey(o);
-        }
-        public boolean remove(Object o) {
-            return HashMap.this.removeEntryForKey(o) != null;
-        }
-        public void clear() {
-            HashMap.this.clear();
-        }
-    }
-
-    Iterator&lt;K&gt; newKeyIterator()   {
-        return new KeyIterator();
-    }
-
-    private final class KeyIterator extends HashIterator&lt;K&gt; {
-        public K next() {
-            return nextEntry().getKey();
-        }
-    }
-
-    private abstract class HashIterator&lt;E&gt; implements Iterator&lt;E&gt; {
-        Entry&lt;K,V&gt; next;        // next entry to return
-        int expectedModCount;   // For fast-fail
-        int index;              // current slot
-        Entry&lt;K,V&gt; current;     // current entry
-
-        HashIterator() {
-            expectedModCount = modCount;
-            if (size &gt; 0) { // advance to first entry
-                Entry[] t = table;
-                while (index &lt; t.length &amp;&amp; (next = t[index++]) == null)
-                    ;
-            }
-        }
-
-        public final boolean hasNext() {
-            return next != null;
-        }
-
-        final Entry&lt;K,V&gt; nextEntry() {
-            if (modCount != expectedModCount)
-                throw new ConcurrentModificationException();
-            Entry&lt;K,V&gt; e = next;
-            if (e == null)
-                throw new NoSuchElementException();
-
-            if ((next = e.next) == null) {
-                Entry[] t = table;
-                while (index &lt; t.length &amp;&amp; (next = t[index++]) == null)
-                    ;
-            }
-            current = e;
-            return e;
-        }
-
-        public void remove() {
-            if (current == null)
-                throw new IllegalStateException();
-            if (modCount != expectedModCount)
-                throw new ConcurrentModificationException();
-            Object k = current.key;
-            current = null;
-            HashMap.this.removeEntryForKey(k);
-            expectedModCount = modCount;
-        }
-    }
-</code></pre>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Set&lt;K&gt; <span class="title">keySet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Set&lt;K&gt; ks = keySet;</span><br><span class="line">    <span class="keyword">return</span> (ks != <span class="keyword">null</span> ? ks : (keySet = <span class="keyword">new</span> KeySet()));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">KeySet</span> <span class="keyword">extends</span> <span class="title">AbstractSet</span>&lt;<span class="title">K</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterator&lt;K&gt; <span class="title">iterator</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> newKeyIterator();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> size;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">contains</span><span class="params">(Object o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> containsKey(o);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">remove</span><span class="params">(Object o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> HashMap.<span class="keyword">this</span>.removeEntryForKey(o) != <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        HashMap.<span class="keyword">this</span>.clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Iterator&lt;K&gt; <span class="title">newKeyIterator</span><span class="params">()</span>   </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> KeyIterator();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">KeyIterator</span> <span class="keyword">extends</span> <span class="title">HashIterator</span>&lt;<span class="title">K</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> K <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> nextEntry().getKey();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">HashIterator</span>&lt;<span class="title">E</span>&gt; <span class="keyword">implements</span> <span class="title">Iterator</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">    Entry&lt;K,V&gt; next;        <span class="comment">// next entry to return</span></span><br><span class="line">    <span class="keyword">int</span> expectedModCount;   <span class="comment">// For fast-fail</span></span><br><span class="line">    <span class="keyword">int</span> index;              <span class="comment">// current slot</span></span><br><span class="line">    Entry&lt;K,V&gt; current;     <span class="comment">// current entry</span></span><br><span class="line"></span><br><span class="line">    HashIterator() &#123;</span><br><span class="line">        expectedModCount = modCount;</span><br><span class="line">        <span class="keyword">if</span> (size &gt; <span class="number">0</span>) &#123; <span class="comment">// advance to first entry</span></span><br><span class="line">            Entry[] t = table;</span><br><span class="line">            <span class="keyword">while</span> (index &lt; t.length &amp;&amp; (next = t[index++]) == <span class="keyword">null</span>)</span><br><span class="line">                ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> next != <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">final</span> Entry&lt;K,V&gt; <span class="title">nextEntry</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (modCount != expectedModCount)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ConcurrentModificationException();</span><br><span class="line">        Entry&lt;K,V&gt; e = next;</span><br><span class="line">        <span class="keyword">if</span> (e == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchElementException();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ((next = e.next) == <span class="keyword">null</span>) &#123;</span><br><span class="line">            Entry[] t = table;</span><br><span class="line">            <span class="keyword">while</span> (index &lt; t.length &amp;&amp; (next = t[index++]) == <span class="keyword">null</span>)</span><br><span class="line">                ;</span><br><span class="line">        &#125;</span><br><span class="line">        current = e;</span><br><span class="line">        <span class="keyword">return</span> e;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (current == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</span><br><span class="line">        <span class="keyword">if</span> (modCount != expectedModCount)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ConcurrentModificationException();</span><br><span class="line">        Object k = current.key;</span><br><span class="line">        current = <span class="keyword">null</span>;</span><br><span class="line">        HashMap.<span class="keyword">this</span>.removeEntryForKey(k);</span><br><span class="line">        expectedModCount = modCount;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="ConcurrentHash的迭代操作为什么是弱一致性的"><a href="#ConcurrentHash的迭代操作为什么是弱一致性的" class="headerlink" title="ConcurrentHash的迭代操作为什么是弱一致性的"></a>ConcurrentHash的迭代操作为什么是弱一致性的</h2><p>同样的，ConcurrentHashMap的keySet()方法最终也是通过HashIterator的迭代器实现，但代码已经发生了变化，它已经不再维护任何计数器，而且代码中也不会再抛出ConcurrentHashMap()，当容器被并发修改时，迭代操作将会继续执行，因此无法保证迭代操作一定能够得到容器中最新的内容。</p>
-<pre><code class="java">    abstract class HashIterator {
-        int nextSegmentIndex;
-        int nextTableIndex;
-        HashEntry&lt;K,V&gt;[] currentTable;
-        HashEntry&lt;K, V&gt; nextEntry;
-        HashEntry&lt;K, V&gt; lastReturned;
-
-        HashIterator() {
-            nextSegmentIndex = segments.length - 1;
-            nextTableIndex = -1;
-            advance();
-        }
-
-        final void advance() { … }
-
-        final HashEntry&lt;K,V&gt; nextEntry() {
-            HashEntry&lt;K,V&gt; e = nextEntry;
-            if (e == null)
-                throw new NoSuchElementException();
-            lastReturned = e; // cannot assign until after null check
-            if ((nextEntry = e.next) == null)
-                advance();
-            return e;
-        }
-
-        public final boolean hasNext() { return nextEntry != null; }
-        public final boolean hasMoreElements() { return nextEntry != null; }
-
-        public final void remove() {
-            if (lastReturned == null)
-                throw new IllegalStateException();
-            ConcurrentHashMap.this.remove(lastReturned.key);
-            lastReturned = null;
-        }
-    }
-</code></pre>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">HashIterator</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> nextSegmentIndex;</span><br><span class="line">    <span class="keyword">int</span> nextTableIndex;</span><br><span class="line">    HashEntry&lt;K,V&gt;[] currentTable;</span><br><span class="line">    HashEntry&lt;K, V&gt; nextEntry;</span><br><span class="line">    HashEntry&lt;K, V&gt; lastReturned;</span><br><span class="line"></span><br><span class="line">    HashIterator() &#123;</span><br><span class="line">        nextSegmentIndex = segments.length - <span class="number">1</span>;</span><br><span class="line">        nextTableIndex = -<span class="number">1</span>;</span><br><span class="line">        advance();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">advance</span><span class="params">()</span> </span>&#123; … &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">final</span> HashEntry&lt;K,V&gt; <span class="title">nextEntry</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        HashEntry&lt;K,V&gt; e = nextEntry;</span><br><span class="line">        <span class="keyword">if</span> (e == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchElementException();</span><br><span class="line">        lastReturned = e; <span class="comment">// cannot assign until after null check</span></span><br><span class="line">        <span class="keyword">if</span> ((nextEntry = e.next) == <span class="keyword">null</span>)</span><br><span class="line">            advance();</span><br><span class="line">        <span class="keyword">return</span> e;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">hasNext</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> nextEntry != <span class="keyword">null</span>; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">hasMoreElements</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> nextEntry != <span class="keyword">null</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (lastReturned == <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException();</span><br><span class="line">        ConcurrentHashMap.<span class="keyword">this</span>.remove(lastReturned.key);</span><br><span class="line">        lastReturned = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>最后，从线程安全性、迭代操作的一致性和性能三个方面分别做一个比较：</p>
 <p><img src="/img/deep-into-consitency-of-hashmap-and-concurrenthashmap-1.png" alt="三个维度比较"></p>
 <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
@@ -630,7 +485,7 @@
   <div class="comments" id="comments">
     
       <div class="ds-thread" data-thread-key="2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/"
-           data-title="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题" data-url="http://zhouhualei.github.io/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/">
+           data-title="Deep in JUC, Part 1: 深究HashMap以及ConcurrentHashMap的一致性问题" data-url="http://warrentalk.site/2015/06/08/deep-into-consitency-of-hashmap-and-concurrenthashmap/">
       </div>
     
   </div>
