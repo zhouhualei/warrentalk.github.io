@@ -470,7 +470,7 @@
 <li>Http11AprProtocol Connector: Apr即Apache Portable Runtime，从操作系统层面解决io阻塞问题。</li>
 </ul>
 </blockquote>
-<p>这里引用文献11中对Tomcat8的性能测试结果<br><figure class="highlight vim"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ab</span> -n <span class="number">10000</span> -<span class="keyword">c</span> <span class="number">1000</span> localhos<span class="variable">t:8080</span>/examples/<span class="built_in">index</span>.jsp</span><br></pre></td></tr></table></figure></p>
+<p>这里引用文献11中对Tomcat8的性能测试结果<br><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ab</span> -n <span class="number">10000</span> -<span class="keyword">c</span> <span class="number">1000</span> localhos<span class="variable">t:8080</span>/examples/<span class="built_in">index</span>.jsp</span><br></pre></td></tr></table></figure></p>
 <p><img src="/img/5896b520ab64413f92000f1a.png" alt="Bio/Nio/Apr性能对比"><br>总体上来看，Apr处理请求最快，Bio最慢；Apr宽带占用最高，Bio最低；但Apr的内存占用最高，而Nio的内存占用最低</p>
 <h2 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a><strong>Nginx</strong></h2><blockquote>
 <ul>

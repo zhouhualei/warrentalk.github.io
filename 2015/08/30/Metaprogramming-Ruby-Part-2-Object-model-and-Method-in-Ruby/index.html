@@ -396,14 +396,42 @@
 <li>Object类是所有类的默认superclass</li>
 <li>关于类为什么可以调用class方法，Class的superclass为什么是Module? 这些问题，可以参考另一篇文章《Ruby中那些不太容易理解的特性》</li>
 </ul>
-<h3 id="Module-in-Object-Model"><a href="#Module-in-Object-Model" class="headerlink" title="Module in Object Model"></a>Module in Object Model</h3><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看祖先链</span></span><br><span class="line"><span class="meta">2.0.0-p247 :001 &gt;</span> String.ancestors</span><br><span class="line">=&gt; [String, Comparable, Object, Kernel, BasicObject]</span><br></pre></td></tr></table></figure>
+<h3 id="Module-in-Object-Model"><a href="#Module-in-Object-Model" class="headerlink" title="Module in Object Model"></a>Module in Object Model</h3><pre><code class="ruby"> # 查看祖先链
+ 2.0.0-p247 :001 &gt; String.ancestors
+ =&gt; [String, Comparable, Object, Kernel, BasicObject]
+</code></pre>
 <p>祖先链中Kernel是一个模块，为什么出现在这？Kernel其实是Object中include进来的一个Module，而Ruby底层会将引入的Module封装成一个匿名类插入到包含它的类的上方。</p>
 <p>关于Kernel模块，值得一提的是，RubyGem就是在Kernel模块中定义了gem()方法，只要require这个包之后就能在任何地方使用这个方法了，还有proc和lambda方法也定义在Kernel模块中。</p>
-<h3 id="Open-Class-可以用来增强Ruby或者框架、类库提供的类4"><a href="#Open-Class-可以用来增强Ruby或者框架、类库提供的类4" class="headerlink" title="Open Class: 可以用来增强Ruby或者框架、类库提供的类4."></a>Open Class: 可以用来增强Ruby或者框架、类库提供的类4.</h3><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">&gt; cat object_model.rb</span><br><span class="line"><span class="comment"># 扩展String类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">String</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">to_alphanumeric</span></span></span><br><span class="line">    gsub /[^\w\s]/, <span class="string">''</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="meta">2.0.0-p247 :001 &gt;</span> require <span class="string">'./object_model.rb'</span></span><br><span class="line"> =&gt; true </span><br><span class="line"><span class="meta">2.0.0-p247 :004 &gt;</span> <span class="string">"#hello, *Metaprogrammming"</span>.to_alphanumeric</span><br><span class="line"> =&gt; <span class="string">"hello Metaprogrammming"</span></span><br></pre></td></tr></table></figure>
-<h3 id="Namespace-using-Module-可以用来防止命名冲突"><a href="#Namespace-using-Module-可以用来防止命名冲突" class="headerlink" title="Namespace using Module: 可以用来防止命名冲突"></a>Namespace using Module: 可以用来防止命名冲突</h3><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">&gt; cat namespace_example.rb</span><br><span class="line"><span class="comment"># 利用module创建namespace</span></span><br><span class="line"><span class="class"><span class="keyword">module</span> <span class="title">NamespaceExample</span></span></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">String</span></span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">length</span></span></span><br><span class="line">      <span class="number">100</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="meta">2.0.0-p247 :004 &gt;</span> String.new.length</span><br><span class="line">=&gt; <span class="number">0</span></span><br><span class="line"><span class="meta">2.0.0-p247 :004 &gt;</span> NamespaceExample::String.new.length</span><br><span class="line">=&gt; <span class="number">100</span></span><br></pre></td></tr></table></figure>
+<h3 id="Open-Class-可以用来增强Ruby或者框架、类库提供的类4"><a href="#Open-Class-可以用来增强Ruby或者框架、类库提供的类4" class="headerlink" title="Open Class: 可以用来增强Ruby或者框架、类库提供的类4."></a>Open Class: 可以用来增强Ruby或者框架、类库提供的类4.</h3><pre><code class="ruby">&gt; cat object_model.rb
+# 扩展String类
+class String
+  def to_alphanumeric
+    gsub /[^\w\s]/, &#39;&#39;
+  end
+end
+2.0.0-p247 :001 &gt; require &#39;./object_model.rb&#39;
+ =&gt; true 
+2.0.0-p247 :004 &gt; &quot;#hello, *Metaprogrammming&quot;.to_alphanumeric
+ =&gt; &quot;hello Metaprogrammming&quot;
+</code></pre>
+<h3 id="Namespace-using-Module-可以用来防止命名冲突"><a href="#Namespace-using-Module-可以用来防止命名冲突" class="headerlink" title="Namespace using Module: 可以用来防止命名冲突"></a>Namespace using Module: 可以用来防止命名冲突</h3><pre><code class="ruby">&gt; cat namespace_example.rb
+# 利用module创建namespace
+module NamespaceExample
+  class String
+    def length
+      100
+    end
+  end
+end
+
+2.0.0-p247 :004 &gt; String.new.length
+=&gt; 0
+2.0.0-p247 :004 &gt; NamespaceExample::String.new.length
+=&gt; 100
+</code></pre>
 <h2 id="Method-in-Ruby"><a href="#Method-in-Ruby" class="headerlink" title="Method in Ruby"></a>Method in Ruby</h2><h3 id="方法的查找与执行"><a href="#方法的查找与执行" class="headerlink" title="方法的查找与执行"></a>方法的查找与执行</h3><p>概念</p>
-<pre><code>. Receiver: 方法所在的对象
-. Ancestors: 从Receiver对象所属的类开始到其父类自下而上的链条，以BasicObject为终点，其中也包括模块
+<pre><code> . Receiver: 方法所在的对象
+ . Ancestors: 从Receiver对象所属的类开始到其父类自下而上的链条，以BasicObject为终点，其中也包括模块
 </code></pre><ul>
 <li><p>方法查找就是从Receiver(接收者)开始沿着Ancestors(祖先链)查找，直到找到对应的方法，然后执行该方法。如果没有在Ancestors上找到对应的方法，解释器则会调用Kernel#method_missing()方法，并由它抛出NoMethodError。</p>
 </li>
@@ -417,12 +445,72 @@
 <li>Ghost method</li>
 <li>Dynamic Proxies</li>
 </ol>
-<h4 id="方法的动态调用-利用Dynamic-Dispatch技术"><a href="#方法的动态调用-利用Dynamic-Dispatch技术" class="headerlink" title="方法的动态调用(利用Dynamic Dispatch技术)"></a>方法的动态调用(利用Dynamic Dispatch技术)</h4><p>Ruby方法调用的本质是向Receiver发送消息<br><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">&gt; cat send_message.rb</span><br><span class="line"><span class="comment"># 利用send方法进行方法调用</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SendMessage</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">my_method</span><span class="params">(arg)</span></span></span><br><span class="line">    puts arg * <span class="number">5</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">obj = SendMessage.new</span><br><span class="line">obj.my_method(<span class="number">2</span>)</span><br><span class="line">obj.send(<span class="symbol">:my_method</span>, <span class="number">2</span>)</span><br></pre></td></tr></table></figure></p>
+<h4 id="方法的动态调用-利用Dynamic-Dispatch技术"><a href="#方法的动态调用-利用Dynamic-Dispatch技术" class="headerlink" title="方法的动态调用(利用Dynamic Dispatch技术)"></a>方法的动态调用(利用Dynamic Dispatch技术)</h4><p>Ruby方法调用的本质是向Receiver发送消息</p>
+<pre><code class="ruby">&gt; cat send_message.rb
+# 利用send方法进行方法调用
+class SendMessage
+  def my_method(arg)
+    puts arg * 5
+  end
+end
+
+obj = SendMessage.new
+obj.my_method(2)
+obj.send(:my_method, 2)
+</code></pre>
 <p>Dynamic Dispatch技术就利用了send方法，将方法名也作为参数，动态确定方法名，从而实现方法的动态调用。</p>
-<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 实例：Test::Unit</span></span><br><span class="line">method_names = public_instance_methods(<span class="literal">true</span>)</span><br><span class="line">tests = method_names.delete_if &#123;<span class="params">|method_name|</span> method_name !~ <span class="regexp">/^test./</span>&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="方法的动态定义-利用Dynamic-Method技术"><a href="#方法的动态定义-利用Dynamic-Method技术" class="headerlink" title="方法的动态定义(利用Dynamic Method技术)"></a>方法的动态定义(利用Dynamic Method技术)</h4><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">&gt; cat dynamic_method.rb</span><br><span class="line"><span class="comment"># 利用Module#define_method()在运行时进行方法定义</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DynamicMethod</span></span></span><br><span class="line">  define_method <span class="symbol">:my_method</span> <span class="keyword">do</span> <span class="params">|my_arg|</span></span><br><span class="line">    my_arg * <span class="number">3</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">puts DynamicMethod.new.my_method(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
-<h4 id="创建幽灵方法-在method-missing内定义"><a href="#创建幽灵方法-在method-missing内定义" class="headerlink" title="创建幽灵方法(在method_missing内定义)"></a>创建幽灵方法(在method_missing内定义)</h4><p>当无法找到调用的方法时，将会调用self的method_missing方法，可以利用这个特性创建一些Ghost method(幽灵方法)，这些方法并不真正存在，但对用户来说，跟真实存在的方法没有区别。<br><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">&gt; cat ghost_method.rb</span><br><span class="line"><span class="comment"># 在method_missing中创建幽灵方法</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GhostMethod</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">initialize</span></span></span><br><span class="line">    @attributes = &#123;&#125;</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">method_missing</span><span class="params">(name, *args)</span></span></span><br><span class="line">    attribute = name.to_s</span><br><span class="line">    <span class="keyword">if</span> attribute =~ <span class="regexp">/=$/</span></span><br><span class="line">      @attributes[attribute.chop] = args[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      @attributes[attribute]</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">user = GhostMethod.new</span><br><span class="line">user.name = <span class="string">"Warren"</span></span><br><span class="line">user.job = <span class="string">"Programmer"</span></span><br><span class="line">puts user.name</span><br><span class="line">puts user.job</span><br></pre></td></tr></table></figure></p>
-<h4 id="方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码"><a href="#方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码" class="headerlink" title="方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)"></a>方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)</h4><figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">&gt; cat http_wrapper.rb</span><br><span class="line"><span class="comment"># 在method_missing中进行方法的转发</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HttpWrapper</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">request</span><span class="params">(method, *params)</span></span></span><br><span class="line">    respose = XmlSimple.xml_in(http_get(request_url(method, params)))</span><br><span class="line">    rails response[‘err’][‘msg’] <span class="keyword">if</span> response[’stat’] != ‘ok<span class="string">'</span><br><span class="line">    response</span><br><span class="line">  end</span><br><span class="line"></span><br><span class="line">  def method_missing(method_id, *params)</span><br><span class="line">    request(mehtod_id.id2name.gsub(/_/, ‘.’), params[0])     # 利用幽灵方法构造HTTP请求并转发给Web Service</span><br><span class="line">  end</span><br><span class="line">end</span></span><br></pre></td></tr></table></figure>
+<pre><code class="ruby"># 实例：Test::Unit
+method_names = public_instance_methods(true)
+tests = method_names.delete_if {|method_name| method_name !~ /^test./}
+</code></pre>
+<h4 id="方法的动态定义-利用Dynamic-Method技术"><a href="#方法的动态定义-利用Dynamic-Method技术" class="headerlink" title="方法的动态定义(利用Dynamic Method技术)"></a>方法的动态定义(利用Dynamic Method技术)</h4><pre><code class="ruby">&gt; cat dynamic_method.rb
+# 利用Module#define_method()在运行时进行方法定义
+class DynamicMethod
+  define_method :my_method do |my_arg|
+    my_arg * 3
+  end
+end
+
+puts DynamicMethod.new.my_method(2)
+</code></pre>
+<h4 id="创建幽灵方法-在method-missing内定义"><a href="#创建幽灵方法-在method-missing内定义" class="headerlink" title="创建幽灵方法(在method_missing内定义)"></a>创建幽灵方法(在method_missing内定义)</h4><p>当无法找到调用的方法时，将会调用self的method_missing方法，可以利用这个特性创建一些Ghost method(幽灵方法)，这些方法并不真正存在，但对用户来说，跟真实存在的方法没有区别。</p>
+<pre><code class="ruby">&gt; cat ghost_method.rb
+# 在method_missing中创建幽灵方法
+class GhostMethod
+  def initialize
+    @attributes = {}
+  end
+
+  def method_missing(name, *args)
+    attribute = name.to_s
+    if attribute =~ /=$/
+      @attributes[attribute.chop] = args[0]
+    else
+      @attributes[attribute]
+    end
+  end
+end
+
+user = GhostMethod.new
+user.name = &quot;Warren&quot;
+user.job = &quot;Programmer&quot;
+puts user.name
+puts user.job
+</code></pre>
+<h4 id="方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码"><a href="#方法的转发-利用Dynamic-Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码" class="headerlink" title="方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)"></a>方法的转发(利用Dynamic Proxies技术创建封装对象，来封装另一个对象、Web服务或者其它语言代码)</h4><pre><code class="ruby">&gt; cat http_wrapper.rb
+# 在method_missing中进行方法的转发
+class HttpWrapper
+  def request(method, *params)
+    respose = XmlSimple.xml_in(http_get(request_url(method, params)))
+    rails response[‘err’][‘msg’] if response[’stat’] != ‘ok&#39;
+    response
+  end
+
+  def method_missing(method_id, *params)
+    request(mehtod_id.id2name.gsub(/_/, ‘.’), params[0])     # 利用幽灵方法构造HTTP请求并转发给Web Service
+  end
+end
+</code></pre>
 <h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>这里只是罗列了几个基本的元编程技术，将这些技术组合起来能够有效地消除重复代码。你是不是已经领略到了Ruby的神奇了？这还没结束下，期待下一篇吧。</p>
 <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ol>
 <li><a href="http://book.douban.com/subject/7056800/" target="_blank" rel="external">《Ruby元编程》</a></li>
