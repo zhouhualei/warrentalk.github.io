@@ -395,162 +395,32 @@
 <li>intellij 14.0.1 Community Edition</li>
 </ul>
 <h2 id="Step-By-Step"><a href="#Step-By-Step" class="headerlink" title="Step By Step"></a>Step By Step</h2><p>安装sbt环境</p>
-<pre><code class="zsh">$ brew install sbt
-$ sbt --version
-</code></pre>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ brew install sbt</span><br><span class="line">$ sbt --version</span><br></pre></td></tr></table></figure>
 <p>配置项目骨架插件</p>
-<pre><code class="zsh">$ mkdir ~/.sbt/0.13/plugins
-
-$ vim ~/.sbt/0.13/plugins/np.sbt
-addSbtPlugin(&quot;me.lessis&quot; % &quot;np&quot; % &quot;0.2.0&quot;)
-
-$ vim ~/.sbt/0.13/np.sbt
-seq(npSettings: _*)
-</code></pre>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir ~/.sbt/0.13/plugins</span><br><span class="line"></span><br><span class="line">$ vim ~/.sbt/0.13/plugins/np.sbt</span><br><span class="line">addSbtPlugin(<span class="string">"me.lessis"</span> % <span class="string">"np"</span> % <span class="string">"0.2.0"</span>)</span><br><span class="line"></span><br><span class="line">$ vim ~/.sbt/0.13/np.sbt</span><br><span class="line">seq(npSettings: _*)</span><br></pre></td></tr></table></figure>
 <p>新建项目</p>
-<pre><code>$ mkdir chat-app-liftweb-version
-$ cd chat-app-liftweb-version
-</code></pre><p>生成项目骨架</p>
-<pre><code>$ sbt np
-</code></pre><p>配置project的dependency</p>
-<pre><code>$ vim build.sbt
-
-organization := &quot;me.warren&quot;
-
-name := &quot;chat-app-liftweb-version&quot;
-
-version := &quot;1.0&quot;
-
-scalaVersion := &quot;2.10.0&quot;
-
-resolvers ++= Seq(&quot;snapshots&quot;     at &quot;http://oss.sonatype.org/content/repositories/snapshots&quot;,
-                  &quot;releases&quot;      at &quot;http://oss.sonatype.org/content/repositories/releases&quot;
-                )
-
-seq(webSettings :_*)
-
-libraryDependencies ++= {
-  val liftVersion = &quot;2.5-RC1&quot;
-  Seq(
-    &quot;net.liftweb&quot;       %% &quot;lift-webkit&quot;        % liftVersion        % &quot;compile&quot;,
-    &quot;org.eclipse.jetty&quot; % &quot;jetty-webapp&quot; % &quot;8.1.7.v20120910&quot; % &quot;container;provided&quot;,
-    &quot;org.eclipse.jetty.orbit&quot; % &quot;javax.servlet&quot; % &quot;3.0.0.v201112011016&quot; % &quot;container,compile&quot; artifacts Artifact(&quot;javax.servlet&quot;, &quot;jar&quot;, &quot;jar&quot;)
-  )
-}
-</code></pre><p>配置sbt plugin</p>
-<pre><code>$ vim project/plugins.sbt
-
-addSbtPlugin(&quot;com.github.mpeltonen&quot; % &quot;sbt-idea&quot; % &quot;1.6.0&quot;)
-
-addSbtPlugin(&quot;com.earldouglas&quot; % &quot;xsbt-web-plugin&quot; % &quot;0.7.0&quot;)
-</code></pre><p>下载scala, sbt plugin和dependency</p>
-<pre><code>$ sbt update
-</code></pre><p>生成Intellij相关的项目文件，便于import到Intellij中进行后续开发</p>
-<pre><code>$ sbt gen-idea
-</code></pre><p>启动jetty，<a href="http://localhost:8080/" target="_blank" rel="external">http://localhost:8080/</a></p>
-<pre><code>$ sbt ~container:start
-</code></pre><h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>详细代码可参考<a href="https://github.com/zhouhualei/chat-app-liftweb-version" target="_blank" rel="external">https://github.com/zhouhualei/chat-app-liftweb-version</a>，这里只对核心代码做下简单分析。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir chat-app-liftweb-version</span><br><span class="line">$ cd chat-app-liftweb-version</span><br></pre></td></tr></table></figure>
+<p>生成项目骨架</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sbt np</span><br></pre></td></tr></table></figure>
+<p>配置project的dependency</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">$ vim build.sbt</span><br><span class="line"></span><br><span class="line">organization := &quot;me.warren&quot;</span><br><span class="line"></span><br><span class="line">name := &quot;chat-app-liftweb-version&quot;</span><br><span class="line"></span><br><span class="line">version := &quot;1.0&quot;</span><br><span class="line"></span><br><span class="line">scalaVersion := &quot;2.10.0&quot;</span><br><span class="line"></span><br><span class="line">resolvers ++= Seq(&quot;snapshots&quot;     at &quot;http://oss.sonatype.org/content/repositories/snapshots&quot;,</span><br><span class="line">                  &quot;releases&quot;      at &quot;http://oss.sonatype.org/content/repositories/releases&quot;</span><br><span class="line">                )</span><br><span class="line"></span><br><span class="line">seq(webSettings :_*)</span><br><span class="line"></span><br><span class="line">libraryDependencies ++= &#123;</span><br><span class="line">  val liftVersion = &quot;2.5-RC1&quot;</span><br><span class="line">  Seq(</span><br><span class="line">    &quot;net.liftweb&quot;       %% &quot;lift-webkit&quot;        % liftVersion        % &quot;compile&quot;,</span><br><span class="line">    &quot;org.eclipse.jetty&quot; % &quot;jetty-webapp&quot; % &quot;8.1.7.v20120910&quot; % &quot;container;provided&quot;,</span><br><span class="line">    &quot;org.eclipse.jetty.orbit&quot; % &quot;javax.servlet&quot; % &quot;3.0.0.v201112011016&quot; % &quot;container,compile&quot; artifacts Artifact(&quot;javax.servlet&quot;, &quot;jar&quot;, &quot;jar&quot;)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置sbt plugin</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ vim project/plugins.sbt</span><br><span class="line"></span><br><span class="line">addSbtPlugin(&quot;com.github.mpeltonen&quot; % &quot;sbt-idea&quot; % &quot;1.6.0&quot;)</span><br><span class="line"></span><br><span class="line">addSbtPlugin(&quot;com.earldouglas&quot; % &quot;xsbt-web-plugin&quot; % &quot;0.7.0&quot;)</span><br></pre></td></tr></table></figure>
+<p>下载scala, sbt plugin和dependency</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sbt update</span><br></pre></td></tr></table></figure>
+<p>生成Intellij相关的项目文件，便于import到Intellij中进行后续开发</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sbt gen-idea</span><br></pre></td></tr></table></figure>
+<p>启动jetty，<a href="http://localhost:8080/" target="_blank" rel="external">http://localhost:8080/</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sbt ~container:start</span><br></pre></td></tr></table></figure>
+<h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>详细代码可参考<a href="https://github.com/zhouhualei/chat-app-liftweb-version" target="_blank" rel="external">https://github.com/zhouhualei/chat-app-liftweb-version</a>，这里只对核心代码做下简单分析。</p>
 <h3 id="HTML页面"><a href="#HTML页面" class="headerlink" title="HTML页面"></a><em>HTML页面</em></h3><p>只有一个主页面，完整路径为src/main/webapp/index.html</p>
-<pre><code class="html">
-&lt;div id=&quot;main&quot; class=&quot;lift:surround?with=default;at=content&quot;&gt;
-    &lt;!-- the behavior of the div --&gt;
-    &lt;div class=&quot;lift:comet?type=Chat&quot;&gt;
-        Some chat messages
-        &lt;ul&gt;
-            &lt;li&gt;A message&lt;/li&gt;
-            &lt;li class=&quot;clearable&quot;&gt;Another message&lt;/li&gt;
-            &lt;li class=&quot;clearable&quot;&gt;A third message&lt;/li&gt;
-        &lt;/ul&gt; &lt;/div&gt;
-    &lt;div&gt;
-        &lt;form class=&quot;form.ajax&quot;&gt;
-            &lt;input class=&quot;lift:ChatIn&quot; id=&quot;chat_in&quot;/&gt;
-            &lt;input type=&quot;submit&quot; value=&quot;Say Something&quot;/&gt;
-        &lt;/form&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-</code></pre>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"main"</span> <span class="attr">class</span>=<span class="string">"lift:surround?with=default;at=content"</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- the behavior of the div --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"lift:comet?type=Chat"</span>&gt;</span></span><br><span class="line">        Some chat messages</span><br><span class="line">        <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">li</span>&gt;</span>A message<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">li</span> <span class="attr">class</span>=<span class="string">"clearable"</span>&gt;</span>Another message<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">li</span> <span class="attr">class</span>=<span class="string">"clearable"</span>&gt;</span>A third message<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">ul</span>&gt;</span> <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">form</span> <span class="attr">class</span>=<span class="string">"form.ajax"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">class</span>=<span class="string">"lift:ChatIn"</span> <span class="attr">id</span>=<span class="string">"chat_in"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> <span class="attr">value</span>=<span class="string">"Say Something"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <h3 id="聊天表单-ChatIn"><a href="#聊天表单-ChatIn" class="headerlink" title="聊天表单(ChatIn)"></a><em>聊天表单(ChatIn)</em></h3><p>表单提交时，将内容发送给ChatServer，完整路径为src/main/scala/code/snippet/ChatIn</p>
-<pre><code class="scala">
-package code.snippet
-
-import net.liftweb._
-import http._
-import js._
-import JsCmds._
-import JE._
-
-import code.comet.ChatServer
-
-/**
- * A snippet transforms input to output... it transforms
- * templates to dynamic content. Lift&#39;s templates can invoke
- * snippets and the snippets are resolved in many different
- * ways including &quot;by convention&quot;. The snippet package
- * has named snippets and those snippets can be classes
- * that are instantiated when invoked or they can be
- * objects, singletons. Singletons are useful if there&#39;s
- * no explicit state managed in the snippet.
- */
-object ChatIn {
-
-  def render = SHtml.onSubmit(s =&gt; {
-    ChatServer ! s
-    SetValById(&quot;chat_in&quot;, &quot;&quot;)
-  })
-
-}
-</code></pre>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> code.snippet</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> net.liftweb._</span><br><span class="line"><span class="keyword">import</span> http._</span><br><span class="line"><span class="keyword">import</span> js._</span><br><span class="line"><span class="keyword">import</span> <span class="type">JsCmds</span>._</span><br><span class="line"><span class="keyword">import</span> <span class="type">JE</span>._</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> code.comet.<span class="type">ChatServer</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * A snippet transforms input to output... it transforms * templates to dynamic content. Lift's templates can invoke * snippets and the snippets are resolved in many different * ways including "by convention". The snippet package * has named snippets and those snippets can be classes * that are instantiated when invoked or they can be * objects, singletons. Singletons are useful if there's * no explicit state managed in the snippet.</span><br><span class="line"> */</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">ChatIn</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">render</span> </span>= <span class="type">SHtml</span>.onSubmit(s =&gt; &#123;</span><br><span class="line">    <span class="type">ChatServer</span> ! s</span><br><span class="line">    <span class="type">SetValById</span>(<span class="string">"chat_in"</span>, <span class="string">""</span>)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="聊天服务器-ChatServer"><a href="#聊天服务器-ChatServer" class="headerlink" title="聊天服务器(ChatServer)"></a><em>聊天服务器(ChatServer)</em></h3><p>利用Actor并发模型，同时维护多个clients的服务，当聊天记录发生变化时，通知Chat让其通过Comet方式刷新浏览器页面。完整路径为src/main/scala/code/comet/ChatServer</p>
-<pre><code class="scala">package code.comet
-
-import net.liftweb._
-import http._
-import actor._
-
-/**
- * A singleton that provides chat features to all clients.
- * It&#39;s an Actor so it&#39;s thread-safe because only one
- * message will be processed at once.
- */
-object ChatServer extends LiftActor with ListenerManager {
-
-  private var msgs = Vector(&quot;Welcome&quot;)
-
-  def createUpdate = msgs
-
-  override def lowPriority = {
-    case s: String =&gt; msgs :+= s; updateListeners()
-  }
-
-}
-</code></pre>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> code.comet</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> net.liftweb._</span><br><span class="line"><span class="keyword">import</span> http._</span><br><span class="line"><span class="keyword">import</span> actor._</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * A singleton that provides chat features to all clients. * It's an Actor so it's thread-safe because only one * message will be processed at once. */</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">ChatServer</span> <span class="keyword">extends</span> <span class="title">LiftActor</span> <span class="keyword">with</span> <span class="title">ListenerManager</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> msgs = <span class="type">Vector</span>(<span class="string">"Welcome"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">createUpdate</span> </span>= msgs</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">lowPriority</span> </span>= &#123;</span><br><span class="line">    <span class="keyword">case</span> s: <span class="type">String</span> =&gt; msgs :+= s; updateListeners()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="聊天记录-Chat"><a href="#聊天记录-Chat" class="headerlink" title="聊天记录(Chat)"></a><em>聊天记录(Chat)</em></h3><p>负责页面的实时刷新，通过注册ChatServer，当ChatServer收到message时，会得到通知。完整路径为src/main/scala/code/comet/Chat</p>
-<pre><code class="scala">
-package code.comet
-
-import net.liftweb._
-import http._
-import util._
-import Helpers._
-
-/**
- * The screen real estate on the browser will be represented
- * by this component. When the component changes on the server
- * the changes are automatically reflected in the browser.
- */
-class Chat extends CometActor with CometListener{
-
-  private var msgs: Vector[String] = Vector()
-
-  def registerWith = ChatServer
-
-  override def lowPriority = {
-    case v: Vector[String] =&gt; msgs = v; reRender()
-  }
-
-  def render = &quot;li *&quot; #&gt; msgs &amp; ClearClearable
-}
-</code></pre>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">package</span> code.comet</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> net.liftweb._</span><br><span class="line"><span class="keyword">import</span> http._</span><br><span class="line"><span class="keyword">import</span> util._</span><br><span class="line"><span class="keyword">import</span> <span class="type">Helpers</span>._</span><br><span class="line"></span><br><span class="line"><span class="comment">/** * The screen real estate on the browser will be represented * by this component. When the component changes on the server * the changes are automatically reflected in the browser. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Chat</span> <span class="keyword">extends</span> <span class="title">CometActor</span> <span class="keyword">with</span> <span class="title">CometListener</span></span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> msgs: <span class="type">Vector</span>[<span class="type">String</span>] = <span class="type">Vector</span>()</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">registerWith</span> </span>= <span class="type">ChatServer</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">lowPriority</span> </span>= &#123;</span><br><span class="line">    <span class="keyword">case</span> v: <span class="type">Vector</span>[<span class="type">String</span>] =&gt; msgs = v; reRender()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">render</span> </span>= <span class="string">"li *"</span> #&gt; msgs &amp; <span class="type">ClearClearable</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="UI效果"><a href="#UI效果" class="headerlink" title="UI效果"></a>UI效果</h2><p><img src="/img/chat-app-lift-version-ui.png" alt="聊天室页面"></p>
 <h2 id="Resource"><a href="#Resource" class="headerlink" title="Resource"></a>Resource</h2><blockquote>
 <ol>
@@ -696,7 +566,7 @@ class Chat extends CometActor with CometListener{
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -705,7 +575,7 @@ class Chat extends CometActor with CometListener{
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">31</span>
+                <span class="site-state-item-count">32</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

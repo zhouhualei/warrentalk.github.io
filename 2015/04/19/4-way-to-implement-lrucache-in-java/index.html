@@ -387,206 +387,10 @@
 
       
         <h3 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h3><p>这两天在LeetCode上写一道LRUCache的题，题不难，用HashMap加双向链表提交通过之后，尝试用其它更简洁的方式进行实现，本文将这些方法一一列出，以供大家参考。<a id="more"></a></p>
-<h3 id="1-HashMap-双向链表"><a href="#1-HashMap-双向链表" class="headerlink" title="1. HashMap + 双向链表"></a>1. HashMap + 双向链表</h3><pre><code class="java">package me.warren.leetcode;
-
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * Created by warzhou1 on 4/18/15.
- * Problem 146
- */
-public class LRUCache {
-
-    private Map hash;
-    private int capacity;
-
-    private LinkedNode head;
-    private LinkedNode tail;
-
-    public LRUCache(int capacity) {
-        this.hash = new HashMap&lt;Integer, LinkedNode&gt;(capacity);
-        this.head = null;
-        this.tail = null;
-        this.capacity = capacity;
-    }
-
-    public int get(int key) {
-        LinkedNode node = (LinkedNode) this.hash.get(key);
-        if (node != null) {
-            moveToHead(node);
-
-            return node.value;
-        } else {
-            return -1;
-        }
-    }
-
-    public void set(int key, int value) {
-        if (size() &gt; 0 &amp;&amp; size() == capacity &amp;&amp; this.hash.get(key) == null) {
-            // remove the tail node
-            this.hash.remove(this.tail.key);
-            this.tail = this.tail.prev;
-        }
-
-        if (size() &gt; 0) {
-            if (this.hash.get(key) == null) {
-                LinkedNode newNode = new LinkedNode(key, value);
-                this.hash.put(key, newNode);
-                addToHead(newNode);
-            } else {
-                LinkedNode oldNode = (LinkedNode) this.hash.get(key);
-                oldNode.value = value;
-                moveToHead(oldNode);
-            }
-        } else {
-            LinkedNode newNode = new LinkedNode(key, value);
-            this.head = newNode;
-            this.tail = newNode;
-            this.hash.put(key, newNode);
-        }
-    }
-
-    private int size() {
-        return this.hash.size();
-    }
-
-    private void addToHead(LinkedNode node) {
-        node.next = this.head;
-        this.head.prev = node;
-        this.head = node;
-    }
-
-    private void moveToHead(LinkedNode node) {
-        if (node != this.head) {
-
-            // remove from old position
-            node.prev.next = node.next;
-            if (node == this.tail) {
-                this.tail = node.prev;
-            } else {
-                node.next.prev = node.prev;
-            }
-
-            addToHead(node);
-        }
-    }
-
-}
-
-class LinkedNode {
-    int key;
-    int value;
-    LinkedNode prev;
-    LinkedNode next;
-
-    public LinkedNode(int key, int value) {
-        this.key = key;
-        this.value = value;
-        this.prev = null;
-        this.next = null;
-    }
-}
-</code></pre>
-<h3 id="2-LinkedHashMap"><a href="#2-LinkedHashMap" class="headerlink" title="2. LinkedHashMap"></a>2. LinkedHashMap</h3><pre><code class="java">package me.warren.leetcode;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-/**
- * Created by warzhou1 on 4/19/15.
- * Problem 146
- * Make use of LinkedHashMap to implement a LRUCache
- */
-public class LRUCacheByLinkedHashMap {
-
-    private Map linkedMap;
-
-    public LRUCacheByLinkedHashMap(final int capacity) {
-        linkedMap = new LinkedHashMap&lt;Integer, Integer&gt;(capacity, 1, true) {
-            protected boolean removeEldestEntry (Map.Entry&lt;Integer, Integer&gt; eldest){
-                return size() &gt; capacity;
-            }
-        };
-    }
-
-    public int get(int key) {
-        Object value = linkedMap.get(key);
-        if (value == null) {
-            return -1;
-        }
-        return (Integer)value;
-    }
-
-    public void set(int key, int value) {
-        linkedMap.put(key, value);
-    }
-
-}
-</code></pre>
-<h3 id="3-LRUMap"><a href="#3-LRUMap" class="headerlink" title="3. LRUMap"></a>3. LRUMap</h3><pre><code class="java">package me.warren.leetcode;
-
-import org.apache.commons.collections4.map.LRUMap;
-
-/**
- * Created by warzhou1 on 4/19/15.
- * Problem 146
- * Make use of LRUMap to implement a LRUCache
- */
-public class LRUCacheByLRUMap {
-
-    private LRUMap map;
-
-    public LRUCacheByLRUMap(int capacity) {
-        map = new LRUMap(capacity);
-    }
-
-    public int get(int key) {
-        Object value = map.get(key);
-        if (value == null) {
-            return -1;
-        }
-        return (Integer) value;
-    }
-
-    public void set(int key, int value) {
-        map.put(key, value);
-    }
-
-}
-</code></pre>
-<h3 id="4-Guava-CacheBuilder"><a href="#4-Guava-CacheBuilder" class="headerlink" title="4. Guava CacheBuilder"></a>4. Guava CacheBuilder</h3><pre><code class="java">package me.warren.leetcode;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
-/**
- * Created by warzhou1 on 4/19/15.
- * Problem 146
- * Make use of Guava CacheBuilder to implement a LRUCache
- */
-public class LRUCacheByGuava {
-
-    private Cache&lt;Integer, Integer&gt; cache;
-
-    public LRUCacheByGuava(int capacity) {
-        cache = CacheBuilder.newBuilder().maximumSize(capacity).build();
-    }
-
-    public int get(int key) throws Exception {
-        Object value = cache.getIfPresent(key);
-        if (value == null) {
-            return -1;
-        }
-        return (Integer) value;
-    }
-
-    public void set(int key, int value) {
-        cache.put(key, value);
-    }
-
-}
-</code></pre>
+<h3 id="1-HashMap-双向链表"><a href="#1-HashMap-双向链表" class="headerlink" title="1. HashMap + 双向链表"></a>1. HashMap + 双向链表</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> me.warren.leetcode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * Created by warzhou1 on 4/18/15.</span><br><span class="line"> * Problem 146</span><br><span class="line"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LRUCache</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map hash;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> capacity;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> LinkedNode head;</span><br><span class="line">    <span class="keyword">private</span> LinkedNode tail;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LRUCache</span><span class="params">(<span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.hash = <span class="keyword">new</span> HashMap&lt;Integer, LinkedNode&gt;(capacity);</span><br><span class="line">        <span class="keyword">this</span>.head = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">this</span>.tail = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">this</span>.capacity = capacity;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">get</span><span class="params">(<span class="keyword">int</span> key)</span> </span>&#123;</span><br><span class="line">        LinkedNode node = (LinkedNode) <span class="keyword">this</span>.hash.get(key);</span><br><span class="line">        <span class="keyword">if</span> (node != <span class="keyword">null</span>) &#123;</span><br><span class="line">            moveToHead(node);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> node.value;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (size() &gt; <span class="number">0</span> &amp;&amp; size() == capacity &amp;&amp; <span class="keyword">this</span>.hash.get(key) == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// remove the tail node</span></span><br><span class="line">            <span class="keyword">this</span>.hash.remove(<span class="keyword">this</span>.tail.key);</span><br><span class="line">            <span class="keyword">this</span>.tail = <span class="keyword">this</span>.tail.prev;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.hash.get(key) == <span class="keyword">null</span>) &#123;</span><br><span class="line">                LinkedNode newNode = <span class="keyword">new</span> LinkedNode(key, value);</span><br><span class="line">                <span class="keyword">this</span>.hash.put(key, newNode);</span><br><span class="line">                addToHead(newNode);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                LinkedNode oldNode = (LinkedNode) <span class="keyword">this</span>.hash.get(key);</span><br><span class="line">                oldNode.value = value;</span><br><span class="line">                moveToHead(oldNode);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            LinkedNode newNode = <span class="keyword">new</span> LinkedNode(key, value);</span><br><span class="line">            <span class="keyword">this</span>.head = newNode;</span><br><span class="line">            <span class="keyword">this</span>.tail = newNode;</span><br><span class="line">            <span class="keyword">this</span>.hash.put(key, newNode);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">size</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.hash.size();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">addToHead</span><span class="params">(LinkedNode node)</span> </span>&#123;</span><br><span class="line">        node.next = <span class="keyword">this</span>.head;</span><br><span class="line">        <span class="keyword">this</span>.head.prev = node;</span><br><span class="line">        <span class="keyword">this</span>.head = node;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">moveToHead</span><span class="params">(LinkedNode node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (node != <span class="keyword">this</span>.head) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// remove from old position</span></span><br><span class="line">            node.prev.next = node.next;</span><br><span class="line">            <span class="keyword">if</span> (node == <span class="keyword">this</span>.tail) &#123;</span><br><span class="line">                <span class="keyword">this</span>.tail = node.prev;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                node.next.prev = node.prev;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            addToHead(node);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LinkedNode</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> key;</span><br><span class="line">    <span class="keyword">int</span> value;</span><br><span class="line">    LinkedNode prev;</span><br><span class="line">    LinkedNode next;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LinkedNode</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.key = key;</span><br><span class="line">        <span class="keyword">this</span>.value = value;</span><br><span class="line">        <span class="keyword">this</span>.prev = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">this</span>.next = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-LinkedHashMap"><a href="#2-LinkedHashMap" class="headerlink" title="2. LinkedHashMap"></a>2. LinkedHashMap</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> me.warren.leetcode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.LinkedHashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * Created by warzhou1 on 4/19/15.</span><br><span class="line"> * Problem 146</span><br><span class="line"> * Make use of LinkedHashMap to implement a LRUCache</span><br><span class="line"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LRUCacheByLinkedHashMap</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map linkedMap;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LRUCacheByLinkedHashMap</span><span class="params">(<span class="keyword">final</span> <span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">        linkedMap = <span class="keyword">new</span> LinkedHashMap&lt;Integer, Integer&gt;(capacity, <span class="number">1</span>, <span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="function"><span class="keyword">protected</span> <span class="keyword">boolean</span> <span class="title">removeEldestEntry</span> <span class="params">(Map.Entry&lt;Integer, Integer&gt; eldest)</span></span>&#123;</span><br><span class="line">                <span class="keyword">return</span> size() &gt; capacity;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">get</span><span class="params">(<span class="keyword">int</span> key)</span> </span>&#123;</span><br><span class="line">        Object value = linkedMap.get(key);</span><br><span class="line">        <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (Integer)value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">        linkedMap.put(key, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-LRUMap"><a href="#3-LRUMap" class="headerlink" title="3. LRUMap"></a>3. LRUMap</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> me.warren.leetcode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections4.map.LRUMap;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * Created by warzhou1 on 4/19/15.</span><br><span class="line"> * Problem 146</span><br><span class="line"> * Make use of LRUMap to implement a LRUCache</span><br><span class="line"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LRUCacheByLRUMap</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> LRUMap map;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LRUCacheByLRUMap</span><span class="params">(<span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">        map = <span class="keyword">new</span> LRUMap(capacity);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">get</span><span class="params">(<span class="keyword">int</span> key)</span> </span>&#123;</span><br><span class="line">        Object value = map.get(key);</span><br><span class="line">        <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (Integer) value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">        map.put(key, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-Guava-CacheBuilder"><a href="#4-Guava-CacheBuilder" class="headerlink" title="4. Guava CacheBuilder"></a>4. Guava CacheBuilder</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> me.warren.leetcode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.google.common.cache.Cache;</span><br><span class="line"><span class="keyword">import</span> com.google.common.cache.CacheBuilder;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * Created by warzhou1 on 4/19/15.</span><br><span class="line"> * Problem 146</span><br><span class="line"> * Make use of Guava CacheBuilder to implement a LRUCache</span><br><span class="line"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LRUCacheByGuava</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Cache&lt;Integer, Integer&gt; cache;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LRUCacheByGuava</span><span class="params">(<span class="keyword">int</span> capacity)</span> </span>&#123;</span><br><span class="line">        cache = CacheBuilder.newBuilder().maximumSize(capacity).build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">get</span><span class="params">(<span class="keyword">int</span> key)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Object value = cache.getIfPresent(key);</span><br><span class="line">        <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (Integer) value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(<span class="keyword">int</span> key, <span class="keyword">int</span> value)</span> </span>&#123;</span><br><span class="line">        cache.put(key, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>Have Fun!</p>
 <center><br><img src="/img/58a1d13a6c923c68fc000003.png" alt="卧舟杂谈"><br>订阅我的微信公众号，您将即时收到新博客提醒！<br></center>
 
@@ -722,7 +526,7 @@ public class LRUCacheByGuava {
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -731,7 +535,7 @@ public class LRUCacheByGuava {
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">31</span>
+                <span class="site-state-item-count">32</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

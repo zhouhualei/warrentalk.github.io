@@ -395,26 +395,7 @@
 <li>Language construct（语言构件）: 类、变量、方法等构成代码的组件</li>
 <li>Introspection（内省）：运行时读取语言构件</li>
 </ol>
-<pre><code class="ruby"># An simple example to explain introspection
-class SomeClass
-  def initialize(text)
-    @text = text
-  end
-
-  def welcome
-    @text
-  end
-end
-
-2.0.0-p247 :005 &gt; object = SomeClass.new(&quot;Hello Metaprogramming&quot;)
-=&gt; #&lt;SomeClass:0x007fc5948c9608 @text=&quot;Hello Metaprogramming&quot;&gt; 
-2.0.0-p247 :006 &gt; object.class
-=&gt; SomeClass
-2.0.0-p247 :008 &gt; object.class.instance_methods(false)
-=&gt; [:welcome]
-2.0.0-p247 :009 &gt; object.instance_variables
-=&gt; [:@text]
-</code></pre>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># An simple example to explain introspection</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SomeClass</span></span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(text)</span></span></span><br><span class="line">    @text = text</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">welcome</span></span></span><br><span class="line">    @text</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="meta">2.0.0-p247 :005 &gt;</span> object = SomeClass.new(<span class="string">"Hello Metaprogramming"</span>)</span><br><span class="line">=&gt; #&lt;SomeClass:0x007fc5948c9608 @text="Hello Metaprogramming"&gt; </span><br><span class="line"><span class="meta">2.0.0-p247 :006 &gt;</span> object.class</span><br><span class="line">=&gt; SomeClass</span><br><span class="line"><span class="meta">2.0.0-p247 :008 &gt;</span> object.class.instance_methods(false)</span><br><span class="line">=&gt; [<span class="symbol">:welcome</span>]</span><br><span class="line"><span class="meta">2.0.0-p247 :009 &gt;</span> object.instance_variables</span><br><span class="line">=&gt; [<span class="symbol">:</span>@text]</span><br></pre></td></tr></table></figure>
 <h2 id="什么是元编程（Metaprogramming）？"><a href="#什么是元编程（Metaprogramming）？" class="headerlink" title="什么是元编程（Metaprogramming）？"></a>什么是元编程（Metaprogramming）？</h2><pre><code>粗略地说，支持编写能够编写代码的代码
 确切地说，支持编写能够在运行时操纵（读写）语言构件的代码
 </code></pre><p>具体可细分为静态元编程和动态元编程，前者主要通过编译时代码生成器和编译器实现（属于广义的元编程范畴），后者通过运行时操纵代码实现，本文中的元编程主要介绍后者，即狭义上的元编程（因为Ruby没有编译这个阶段嘛）</p>
@@ -582,7 +563,7 @@ end
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -591,7 +572,7 @@ end
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">31</span>
+                <span class="site-state-item-count">32</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

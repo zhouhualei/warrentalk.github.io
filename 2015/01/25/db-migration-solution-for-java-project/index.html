@@ -398,17 +398,15 @@ migrate4j
 dbmaintain
 AutoPatch
 </code></pre><h3 id="Comparison-Matrix"><a href="#Comparison-Matrix" class="headerlink" title="Comparison Matrix"></a>Comparison Matrix</h3><p><img src="/img/db-migration-solution-comparison-matrix.png" alt="Comparison Matrix"></p>
-<h3 id="Criteria"><a href="#Criteria" class="headerlink" title="Criteria"></a>Criteria</h3><pre><code>   1. can migrate up
-   2. can migrate down
-   3. support SQL as migration file
-   4. easy to use
-   5. support existing database
+<h3 id="Criteria"><a href="#Criteria" class="headerlink" title="Criteria"></a>Criteria</h3><pre><code>1. can migrate up
+2. can migrate down
+3. support SQL as migration file
+4. easy to use
+5. support existing database
 </code></pre><p>经过各方面比较，mybatis-migration是我认为比较合适的方案，文档齐全，易于使用，功能恰到好处。其实flyway我也有看中，可惜不支持rollback让我很是纠结，最终决定选择mybatis-migration。接下来就来简单试用一下吧。</p>
 <h3 id="Practise"><a href="#Practise" class="headerlink" title="Practise"></a>Practise</h3><h4 id="Step-1-Installation"><a href="#Step-1-Installation" class="headerlink" title="Step 1: Installation"></a>Step 1: Installation</h4><p>Download from <a href="https://github.com/mybatis/migrations/releases" target="_blank" rel="external">https://github.com/mybatis/migrations/releases</a>,<br>then install it referring to <a href="http://mybatis.github.io/migrations/installation.html" target="_blank" rel="external">http://mybatis.github.io/migrations/installation.html</a>.</p>
-<h4 id="Step-2-Create-DataBase"><a href="#Step-2-Create-DataBase" class="headerlink" title="Step 2: Create DataBase"></a>Step 2: Create DataBase</h4><pre><code class="shell">$ mysqladmin -uroot -pcepmmon create migrate-testdb
-</code></pre>
-<h4 id="Step-3-Generate-init-files"><a href="#Step-3-Generate-init-files" class="headerlink" title="Step 3: Generate init files"></a>Step 3: Generate init files</h4><pre><code class="shell">$ migrate init
-</code></pre>
+<h4 id="Step-2-Create-DataBase"><a href="#Step-2-Create-DataBase" class="headerlink" title="Step 2: Create DataBase"></a>Step 2: Create DataBase</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mysqladmin -uroot -pcepmmon create migrate-testdb</span><br></pre></td></tr></table></figure>
+<h4 id="Step-3-Generate-init-files"><a href="#Step-3-Generate-init-files" class="headerlink" title="Step 3: Generate init files"></a>Step 3: Generate init files</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ migrate init</span><br></pre></td></tr></table></figure>
 <pre><code>-- MyBatis Migrations - init
 Initializing: .
 Creating: environments
@@ -425,8 +423,7 @@ Done!
 -- Total time: 2s
 -- Finished at: Sun Jan 25 22:31:46 CST 2015
 -- Final Memory: 2M/480M
-</code></pre><pre><code class="shell">$ tree
-</code></pre>
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ tree</span><br></pre></td></tr></table></figure>
 <pre><code>.
 ├── README
 ├── drivers
@@ -439,8 +436,7 @@ Done!
     └── bootstrap.sql
 
 3 directories, 6 files
-</code></pre><h4 id="Step-4-Migration-Status"><a href="#Step-4-Migration-Status" class="headerlink" title="Step 4: Migration Status"></a>Step 4: Migration Status</h4><pre><code class="shell">$ migrate status
-</code></pre>
+</code></pre><h4 id="Step-4-Migration-Status"><a href="#Step-4-Migration-Status" class="headerlink" title="Step 4: Migration Status"></a>Step 4: Migration Status</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ migrate status</span><br></pre></td></tr></table></figure>
 <pre><code>-- MyBatis Migrations - status
 20150125143145    ...pending...    create changelog
 20150125143146    ...pending...    first migration
@@ -449,80 +445,33 @@ Done!
 -- Total time: 0s
 -- Finished at: Sun Jan 25 23:00:39 CST 2015
 -- Final Memory: 7M/480M
-</code></pre><h4 id="Step-5-Migrate-db-up-to-latest-revision"><a href="#Step-5-Migrate-db-up-to-latest-revision" class="headerlink" title="Step 5: Migrate db up to latest revision"></a>Step 5: Migrate db up to latest revision</h4><pre><code class="shell">$ cat scripts/20150125143145_create_changelog.sql
-</code></pre>
-<pre><code>    -- // Create Changelog
-
-    -- Default DDL for changelog table that will keep
-    -- a record of the migrations that have been run.
-
-    -- You can modify this to suit your database before
-    -- running your first migration.
-
-    -- Be sure that ID and DESCRIPTION fields exist in
-    -- BigInteger and String compatible fields respectively.
-
-    CREATE TABLE ${changelog} (
-        id numeric(20,0) NOT NULL,
-        APPLIED_AT VARCHAR(255) NOT NULL,
-        DESCRIPTION VARCHAR(255) NOT NULL,
-        PRIMARY KEY (id)
-    );
-
-    -- //@UNDO    
-    DROP TABLE ${change log};
-</code></pre><pre><code class="shell">$ cat scripts/20150125143146_first_migration.sql
-</code></pre>
-<pre><code>    -- // First migration.
-    -- Migration SQL that makes the change goes here.
-    create table users (
-      id int not null,
-      name varchar(255),
-      primary key(id)
-    );
-
-    -- //@UNDO
-    -- SQL to undo the change goes here.
-    drop table users;
-</code></pre><pre><code class="shell">$ migrate up
-</code></pre>
-<pre><code>    ---------------------------------------------------------
-    -- MyBatis Migrations - up 
-    ========== Applying: 20150125143145_create_changelog.sql 
-    ========== Applying: 20150125143146_first_migration.sql 
-    ---------------------------------------------------------
-    -- MyBatis Migrations SUCCESS 
-    -- Total time: 0s 
-    -- Finished at: Sun Jan 25 23:24:36 CST 2015 
-    -- Final Memory: 10M/480M
-</code></pre><pre><code class="shell">$ migrate status
-</code></pre>
-<pre><code>    ---------------------------------------------------------
-    -- MyBatis Migrations - status
-    ---------------------------------------------------------
-    ID             Applied At          Description
-    =========================================================
-    20150125143145 2015-01-25 23:21:37 create changelog
-    20150125143146 2015-01-25 23:24:36 first migration
-</code></pre><pre><code class="shell">mysql&gt; select * from changelog;
-</code></pre>
-<pre><code>    +----------------+---------------------+------------------+
-    | id             | APPLIED_AT          | DESCRIPTION      |
-    +----------------+---------------------+------------------+
-    | 20150125143145 | 2015-01-25 23:21:37 | create changelog |
-    | 20150125143146 | 2015-01-25 23:24:36 | first migration  |
-    +----------------+---------------------+------------------+
-    2 rows in set (0.00 sec)
-</code></pre><pre><code class="shell">mysql&gt; describe users;
-</code></pre>
-<pre><code>    +-------+--------------+------+-----+---------+-------+
-    | Field | Type         | Null | Key | Default | Extra |
-    +-------+--------------+------+-----+---------+-------+
-    | id    | int(11)      | NO   | PRI | NULL    |       |
-    | name  | varchar(255) | YES  |     | NULL    |       |
-    +-------+--------------+------+-----+---------+-------+
-    2 rows in set (0.01 sec)
-</code></pre><p>Done!</p>
+</code></pre><h4 id="Step-5-Migrate-db-up-to-latest-revision"><a href="#Step-5-Migrate-db-up-to-latest-revision" class="headerlink" title="Step 5: Migrate db up to latest revision"></a>Step 5: Migrate db up to latest revision</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat scripts/20150125143145_create_changelog.sql</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">-- // Create Changelog</span><br><span class="line"></span><br><span class="line">-- Default DDL for changelog table that will keep</span><br><span class="line">-- a record of the migrations that have been run.</span><br><span class="line"></span><br><span class="line">-- You can modify this to suit your database before</span><br><span class="line">-- running your first migration.</span><br><span class="line"></span><br><span class="line">-- Be sure that ID and DESCRIPTION fields exist in</span><br><span class="line">-- BigInteger and String compatible fields respectively.</span><br><span class="line"></span><br><span class="line">CREATE TABLE $&#123;changelog&#125; (</span><br><span class="line">	id numeric(20,0) NOT NULL,</span><br><span class="line">	APPLIED_AT VARCHAR(255) NOT NULL,</span><br><span class="line">	DESCRIPTION VARCHAR(255) NOT NULL,</span><br><span class="line">	PRIMARY KEY (id)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">-- //@UNDO	</span><br><span class="line">DROP TABLE $&#123;change log&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat scripts/20150125143146_first_migration.sql</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- // First migration.</span><br><span class="line">-- Migration SQL that makes the change goes here.</span><br><span class="line">create table users (</span><br><span class="line">  id int not null,</span><br><span class="line">  name varchar(255),</span><br><span class="line">  primary key(id)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">-- //@UNDO</span><br><span class="line">-- SQL to undo the change goes here.</span><br><span class="line">drop table users;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ migrate up</span><br><span class="line">```</span><br></pre></td></tr></table></figure>
+<pre><code>---------------------------------------------------------
+-- MyBatis Migrations - up 
+========== Applying: 20150125143145_create_changelog.sql 
+========== Applying: 20150125143146_first_migration.sql 
+---------------------------------------------------------
+-- MyBatis Migrations SUCCESS 
+-- Total time: 0s 
+-- Finished at: Sun Jan 25 23:24:36 CST 2015 
+-- Final Memory: 10M/480M
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">```shell</span><br><span class="line">$ migrate status  </span><br><span class="line">```</span><br></pre></td></tr></table></figure>
+<pre><code>---------------------------------------------------------
+-- MyBatis Migrations - status
+---------------------------------------------------------
+ID             Applied At          Description
+=========================================================
+20150125143145 2015-01-25 23:21:37 create changelog
+20150125143146 2015-01-25 23:24:36 first migration
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">```shell</span><br><span class="line">mysql&gt; select * from changelog;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+----------------+---------------------+------------------+</span><br><span class="line">| id             | APPLIED_AT          | DESCRIPTION      |</span><br><span class="line">+----------------+---------------------+------------------+</span><br><span class="line">| 20150125143145 | 2015-01-25 23:21:37 | create changelog |</span><br><span class="line">| 20150125143146 | 2015-01-25 23:24:36 | first migration  |</span><br><span class="line">+----------------+---------------------+------------------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; describe users;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">+-------+--------------+------+-----+---------+-------+</span><br><span class="line">| Field | Type         | Null | Key | Default | Extra |</span><br><span class="line">+-------+--------------+------+-----+---------+-------+</span><br><span class="line">| id    | int(11)      | NO   | PRI | NULL    |       |</span><br><span class="line">| name  | varchar(255) | YES  |     | NULL    |       |</span><br><span class="line">+-------+--------------+------+-----+---------+-------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+<p>Done!</p>
 <h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ol>
 <li><a href="https://github.com/mybatis/migrations/releases" target="_blank" rel="external">https://github.com/mybatis/migrations/releases</a></li>
 <li><a href="http://mybatis.github.io/migrations/installation.html" target="_blank" rel="external">http://mybatis.github.io/migrations/installation.html</a></li>
@@ -663,7 +612,7 @@ Done!
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -672,7 +621,7 @@ Done!
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">31</span>
+                <span class="site-state-item-count">32</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
