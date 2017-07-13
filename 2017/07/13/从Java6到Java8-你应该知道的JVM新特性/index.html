@@ -1,0 +1,924 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="java,JVM,Java6,Java7,Java8,G1,GC,CMS,Lambda," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言目前公司内部正在推动Java6到Java8的升级，团队内部的部分应用也已经完成升级，这篇文章主要介绍JVM层面从java6到java8有哪些重要的变化。一线开发人员可能会觉得，不对啊，我了解java7和java8新引入的语言特性不就完了，JVM新特性对我日常开发工作貌似没有什么直接关系啊。可是作为有追求的程序员，我们做到了知其然，要是再能做到知其所以然的话，遇到问题时岂不是能更淡定从容些。看完">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从Java6到Java8: 你应该知道的JVM新特性">
+<meta property="og:url" content="http://warrentalk.site/2017/07/13/从Java6到Java8-你应该知道的JVM新特性/index.html">
+<meta property="og:site_name" content="WarrenTalk">
+<meta property="og:description" content="前言目前公司内部正在推动Java6到Java8的升级，团队内部的部分应用也已经完成升级，这篇文章主要介绍JVM层面从java6到java8有哪些重要的变化。一线开发人员可能会觉得，不对啊，我了解java7和java8新引入的语言特性不就完了，JVM新特性对我日常开发工作貌似没有什么直接关系啊。可是作为有追求的程序员，我们做到了知其然，要是再能做到知其所以然的话，遇到问题时岂不是能更淡定从容些。看完">
+<meta property="og:image" content="http://warrentalk.site/img/5951f7da406ab2572a000000.png">
+<meta property="og:image" content="http://warrentalk.site/img/5959b0413dfb5f1969000002.png">
+<meta property="og:image" content="http://warrentalk.site/img/5959ad743dfb5f1969000000.png">
+<meta property="og:image" content="http://warrentalk.site/img/5959affd3dfb5f1969000001.png">
+<meta property="og:image" content="http://warrentalk.site/img/5958867c5d27cb03c3000000.png">
+<meta property="og:image" content="http://warrentalk.site/img/596580018324b35bee000000.png">
+<meta property="og:updated_time" content="2017-07-13T06:55:17.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从Java6到Java8: 你应该知道的JVM新特性">
+<meta name="twitter:description" content="前言目前公司内部正在推动Java6到Java8的升级，团队内部的部分应用也已经完成升级，这篇文章主要介绍JVM层面从java6到java8有哪些重要的变化。一线开发人员可能会觉得，不对啊，我了解java7和java8新引入的语言特性不就完了，JVM新特性对我日常开发工作貌似没有什么直接关系啊。可是作为有追求的程序员，我们做到了知其然，要是再能做到知其所以然的话，遇到问题时岂不是能更淡定从容些。看完">
+<meta name="twitter:image" content="http://warrentalk.site/img/5951f7da406ab2572a000000.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://warrentalk.site/2017/07/13/从Java6到Java8-你应该知道的JVM新特性/"/>
+
+
+
+
+
+  <title> 从Java6到Java8: 你应该知道的JVM新特性 | WarrenTalk </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?6cdc0c9737c27720d49e320df8535ee2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">WarrenTalk</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <h1 class="site-subtitle" itemprop="description">卧舟杂谈</h1>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于我
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://warrentalk.site/2017/07/13/从Java6到Java8-你应该知道的JVM新特性/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Warren Zhou">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="WarrenTalk">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="WarrenTalk" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+            
+            
+              
+                从Java6到Java8: 你应该知道的JVM新特性
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-13T14:38:56+08:00">
+                2017-07-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Deep-in-JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">Deep in JVM</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/07/13/从Java6到Java8-你应该知道的JVM新特性/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/07/13/从Java6到Java8-你应该知道的JVM新特性/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>目前公司内部正在推动Java6到Java8的升级，团队内部的部分应用也已经完成升级，这篇文章主要介绍JVM层面从java6到java8有哪些重要的变化。一线开发人员可能会觉得，不对啊，我了解java7和java8新引入的语言特性不就完了，JVM新特性对我日常开发工作貌似没有什么直接关系啊。可是作为有追求的程序员，我们做到了知其然，要是再能做到知其所以然的话，遇到问题时岂不是能更淡定从容些。看完此文，可以帮你回答以下几个问题：</p>
+<blockquote>
+<ol>
+<li>动态类型语言在Java7之前和之后分别是如何在JVM上运行的？</li>
+<li>lambda表达式是如何实现的？</li>
+<li>新一代垃圾收集器G1有哪些优势？</li>
+<li>永久代为什么要被移除？元空间有什么不同吗？</li>
+</ol>
+</blockquote>
+<a id="more"></a>
+<h1 id="一、指令集新成员：invokedynamic"><a href="#一、指令集新成员：invokedynamic" class="headerlink" title="一、指令集新成员：invokedynamic"></a>一、指令集新成员：invokedynamic</h1><p>我们先来看看Java7引入的一条新的JVM指令：invokedynamic，这可是JVM被设计出来之后第一次改变指令集，这足以看出这个指令的重要性。</p>
+<h2 id="为什么需要这条指令？"><a href="#为什么需要这条指令？" class="headerlink" title="为什么需要这条指令？"></a>为什么需要这条指令？</h2><p>invokedynamic是一条用来进行方法调用的指令，引入这条新指令说明原来实现方法调用的指令有一定的缺陷。<br>在Java7之前，JVM中包含了4条方法调用指令，分别是invokestatic、invokespecial、invokevirtual和invokeinterface，它们分别对应静态方法调用、构造方法/父类方法/私有方法调用、普通的类方法调用、接口方法调用四种场景。我们通过一个例子来看看它们存在的问题。</p>
+<p>我们通过例子来看看传统的方法调用指令是如何工作的。这是一段简单的Java代码，同时实现不同类型变量的加法操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// filename: InvokestaticDemo.java, 分别实现整形和字符串类型的相加</span><br><span class="line">public class InvokestaticDemo &#123;</span><br><span class="line"></span><br><span class="line">    public static Integer add(Integer x, Integer y)  &#123;</span><br><span class="line">        return x + y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static String add(String x, String y)  &#123;</span><br><span class="line">        return x + y;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        add(2,3);</span><br><span class="line">        add(&quot;2&quot;,&quot;3&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行<code>javac InvokestaticDemo.java</code>进行编译得到class文件，再执行<code>javap -v InvokestaticDemo</code>我们可以看到对应的字节码，截取最关键的一部分如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">Constant pool:</span><br><span class="line">   #8 = Methodref          #12.#32        // InvokestaticDemo.add:(Ljava/lang/Integer;Ljava/lang/Integer;)Ljava/lang/Integer;</span><br><span class="line">  #11 = Methodref          #12.#35        // InvokestaticDemo.add:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;</span><br><span class="line">  #12 = Class              #36            // InvokestaticDemo </span><br><span class="line">  #18 = Utf8               add </span><br><span class="line">  #19 = Utf8               (Ljava/lang/Integer;Ljava/lang/Integer;)Ljava/lang/Integer;</span><br><span class="line">  #20 = Utf8               (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;</span><br><span class="line">  #32 = NameAndType        #18:#19        // add:(Ljava/lang/Integer;Ljava/lang/Integer;)Ljava/lang/Integer;</span><br><span class="line">  #35 = NameAndType        #18:#20        // add:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;  </span><br><span class="line">  #36 = Utf8               InvokestaticDemo  </span><br><span class="line">&#123;  </span><br><span class="line">  public static void main(java.lang.String[]);</span><br><span class="line">    descriptor: ([Ljava/lang/String;)V</span><br><span class="line">    flags: ACC_PUBLIC, ACC_STATIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=2, locals=1, args_size=1</span><br><span class="line">         0: iconst_2</span><br><span class="line">         1: invokestatic  #3                  // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;</span><br><span class="line">         4: iconst_3</span><br><span class="line">         5: invokestatic  #3                  // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;</span><br><span class="line">         8: invokestatic  #8                  // Method add:(Ljava/lang/Integer;Ljava/lang/Integer;)Ljava/lang/Integer;</span><br><span class="line">        11: pop</span><br><span class="line">        12: ldc           #9                  // String 2</span><br><span class="line">        14: ldc           #10                 // String 3</span><br><span class="line">        16: invokestatic  #11                 // Method add:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;</span><br><span class="line">        19: pop</span><br><span class="line">        20: return</span><br><span class="line">      LineNumberTable:</span><br><span class="line">        line 12: 0</span><br><span class="line">        line 13: 12</span><br><span class="line">        line 14: 20</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>从字节码的第8行和第16行可以看到，因为是调用类静态方法，所以使用invokestatic指令，其后有一个参数，分别对应#8和#11，它们在Constant Pool(常量池)中被定义为是Methodref( 方法引用)。Methodref中包含一个Class参数和一个NameAndType参数，其中NameAndType参数又包含UTF8字符串表示方法名以及另一个UTF8字符串表示方法参数类型。很容易理解，Methodref参数完整定义了一个方法，包括其所在的类、方法名、参数的类型，有了这个方法的定义，我们就可以轻松地找到这个方法进行连接并进行调用了。</p>
+<p>那我们来看看同样的代码Groovy可以如何来实现：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GroovyInvokeDynamicDemo</span> &#123;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="keyword">static</span> add(x, y) &#123;</span><br><span class="line">        x + y</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="keyword">static</span> <span class="keyword">void</span> main(String[] args) &#123;</span><br><span class="line">        add(<span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line">        add(<span class="string">"2"</span>, <span class="string">"3"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>很容易看到区别吧，Groovy代码中只定义了一个不带类型的add方法，整型变量和字符串类型的变量都可以调用同一个方法完成方法调用。  所以问题来了，JVM传统的方法调用都是在编译阶段就确定了需要调用的方法，所以我需要为不同的类型定义不同的方法，对以Java为代表的静态语言来说这并不是什么问题，但是对于以Groovy为代表的动态语言来说这就成了一个实实在在的问题，他们无法找到合适的方法调用指令动态决定方法引用，只能通过API层面或者解释器层面这种曲线救国的方式在运行时决定要调用的方法。<br>总的来说，有很多场景需要更加灵活的方法调用，比如运行时决定方法定义、运行时决定参数类型等等。当然Java API层面可以利用反射和MethodHandle等技术 解决这个问题，但是JVM层面如果无法很好地支持这类通用需求，这会导致动态语言无法享受到JVM上的很多性能优化，作为一个志存高远的运行环境，你总得为其它JVM语言多设身处地地想想吧，不是吗？ </p>
+<h2 id="invokedynamic是如何解决这个问题的？"><a href="#invokedynamic是如何解决这个问题的？" class="headerlink" title="invokedynamic是如何解决这个问题的？"></a>invokedynamic是如何解决这个问题的？</h2><p>为了解决上述的问题，java7引入了invokedynamic在JVM层面支持方法调用的动态化。通过引入新的指令集和新的常量，编译时不再需要确定方法引用，而是由invokedynamic指令在运行时调用bootstrap方法在运行时决定方法的定义。 接下来，我们看两个invokedynamic大展拳脚的场景。</p>
+<h2 id="场景1：更好地支持动态类型语言"><a href="#场景1：更好地支持动态类型语言" class="headerlink" title="场景1：更好地支持动态类型语言"></a>场景1：更好地支持动态类型语言</h2><p>动态类型语言利用invokedynamic可以更容易地移植到JVM上。我们知道JVM被设计成了通用的运行时环境，不同语言都可以在这个跨平台的环境中运行，目前也呈现了一种百花齐放的生气，除了Java外，Groovy、Scala、Clojure、JRuby等语言都可以在JVM平台上运行，这些语言当中，Java、Scala是静态类型语言的代表，Groovy和JRuby是动态类型语言的代表。</p>
+<p>那我们先来看看动态类型语言和静态类型语言的区别。</p>
+<p>顾名思义，区别在于变量类型是静态和动态。其实这是针对代码运行时来说的，在运行时才确定变量类型的就属于动态类型语言，而在编译时就确定语言类型的属于静态类型语言。两者的优劣简单说起来，以Groovy为代表的动态类型语言因为灵活性，可以提高代码的复用性，减少代码量；以Java为代表的静态类型语言因为编译器就能确定类型，就可以进行类型检查，提前发现编码问题，提高代码质量；两者的优点从反面来看也是对方的缺点。</p>
+<p>动态语言由于是在运行时决定参数类型，所以可以利用invokedynamic指令进行方法的动态调用,j具体实现细节我们后面会聊。</p>
+<h3 id="Java7之前动态类型语言是如何运行在JVM上的呢？"><a href="#Java7之前动态类型语言是如何运行在JVM上的呢？" class="headerlink" title="Java7之前动态类型语言是如何运行在JVM上的呢？"></a>Java7之前动态类型语言是如何运行在JVM上的呢？</h3><p>我们再来看上面的这段Groovy代码, 在Java6环境下执行时对应的调用栈如下： </p>
+<p><img src="/img/5951f7da406ab2572a000000.png" alt=""></p>
+<p>我们可以看到在main方法和add方法之间插入了好几层方法调用，我们可以猜想这些代码就是用来根据参数类型动态决定要调用的方法的。</p>
+<p>我们再用命令<code>groovyc GroovyInvokeDynamicDemo.groovy</code>对上述代码编译得到calss文件，然后用<code>javap -v GroovyInvokeDynamicDemo</code>查看对应的字节码，以下为截取的其中一段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">Constant pool:</span><br><span class="line">    #2 = Class              #1            // GroovyInvokeDynamicDemo  </span><br><span class="line">   #18 = Utf8               $getCallSiteArray</span><br><span class="line">   #19 = Utf8               ()[Lorg/codehaus/groovy/runtime/callsite/CallSite;    </span><br><span class="line">   #20 = NameAndType        #18:#19       // $getCallSiteArray:()[Lorg/codehaus/groovy/runtime/callsite/CallSite;</span><br><span class="line">   #21 = Methodref          #2.#20        // GroovyInvokeDynamicDemo.$getCallSiteArray:()[Lorg/codehaus/groovy/runtime/callsite/CallSite;</span><br><span class="line">   #31 = Utf8               (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">   #33 = Utf8               org/codehaus/groovy/runtime/callsite/CallSite</span><br><span class="line">   #34 = Class              #33           // org/codehaus/groovy/runtime/callsite/CallSite</span><br><span class="line">   #35 = Utf8               call</span><br><span class="line">   #36 = NameAndType        #35:#31       // call:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;  </span><br><span class="line">   #37 = InterfaceMethodref #34.#36       // org/codehaus/groovy/runtime/callsite/CallSite.call:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  public java.lang.Object add(java.lang.Object, java.lang.Object);</span><br><span class="line">    descriptor: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">    flags: ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=3, locals=4, args_size=3</span><br><span class="line">         0: invokestatic  #21                 // Method $getCallSiteArray:()[Lorg/codehaus/groovy/runtime/callsite/CallSite;</span><br><span class="line">         3: astore_3</span><br><span class="line">         4: aload_3</span><br><span class="line">         5: ldc           #32                 // int 0</span><br><span class="line">         7: aaload</span><br><span class="line">         8: aload_1</span><br><span class="line">         9: aload_2</span><br><span class="line">        10: invokeinterface #37,  3           // InterfaceMethod org/codehaus/groovy/runtime/callsite/CallSite.call:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">        15: areturn</span><br><span class="line">        16: aconst_null</span><br><span class="line">        17: areturn</span><br><span class="line">&#125;</span><br><span class="line">SourceFile: &quot;GroovyInvokeDynamicDemo.groovy&quot;</span><br></pre></td></tr></table></figure>
+<p>我们看到add方法的参数类型都是Object，在它内部首先利用invokestatic指令调用了一次$getCallSiteArray()方法获得CallSite(第0行)，最后再利用invokeinterface指令执行CallSite.call()方法完成方法调用(第10行)。org/codehaus/groovy/runtime/callsite/CallSite是groovy语言包提供的一个类，我们大概可以猜测获取CallSite的过程中就确定了调用方法的定义，并且通过CallSite.call()完成真正的方法调用。为了验证这个逻辑，我们再把这段代码通过<code>jad GroovyInvokeDynamicDemo.class</code>反编译回来，以下为其中一部分相关代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">// Source File Name:   GroovyInvokeDynamicDemo.groovy</span><br><span class="line">import groovy.lang.GroovyObject;</span><br><span class="line">import org.codehaus.groovy.runtime.ScriptBytecodeAdapter;</span><br><span class="line">import org.codehaus.groovy.runtime.callsite.CallSite;</span><br><span class="line">import org.codehaus.groovy.runtime.callsite.CallSiteArray;</span><br><span class="line"></span><br><span class="line">public class GroovyInvokeDynamicDemo implements GroovyObject &#123;</span><br><span class="line"></span><br><span class="line">    private static SoftReference $callSiteArray;</span><br><span class="line">    ...</span><br><span class="line">    public static Object add(Object x, Object y)</span><br><span class="line">    &#123;</span><br><span class="line">        CallSite acallsite[] = $getCallSiteArray();</span><br><span class="line">        return acallsite[0].call(x, y);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static transient void main(String args[])</span><br><span class="line">    &#123;</span><br><span class="line">        CallSite acallsite[] = $getCallSiteArray();</span><br><span class="line">        acallsite[1].callStatic(GroovyInvokeDynamicDemo, Integer.valueOf(2), Integer.valueOf(3));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void $createCallSiteArray_1(String as[])</span><br><span class="line">    &#123;</span><br><span class="line">        as[0] = &quot;plus&quot;;</span><br><span class="line">        as[1] = &quot;add&quot;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static CallSiteArray $createCallSiteArray()</span><br><span class="line">    &#123;</span><br><span class="line">        String as[] = new String[2];</span><br><span class="line">        $createCallSiteArray_1(as);</span><br><span class="line">        return new CallSiteArray(GroovyInvokeDynamicDemo, as);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static CallSite[] $getCallSiteArray()</span><br><span class="line">    &#123;</span><br><span class="line">        CallSiteArray callsitearray;</span><br><span class="line">        if($callSiteArray == null || (callsitearray = (CallSiteArray)$callSiteArray.get()) == null)</span><br><span class="line">        &#123;</span><br><span class="line">            callsitearray = $createCallSiteArray();</span><br><span class="line">            $callSiteArray = new SoftReference(callsitearray);</span><br><span class="line">        &#125;</span><br><span class="line">        return callsitearray.array;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">package org.codehaus.groovy.runtime.dgmimpl;</span><br><span class="line"></span><br><span class="line">import org.codehaus.groovy.runtime.callsite.CallSite;</span><br><span class="line">import org.codehaus.groovy.runtime.dgmimpl.NumberNumberMetaMethod;</span><br><span class="line">import org.codehaus.groovy.runtime.dgmimpl.NumberNumberMetaMethod.NumberNumberCallSite;</span><br><span class="line">import org.codehaus.groovy.runtime.typehandling.NumberMath;</span><br><span class="line"></span><br><span class="line">public final class NumberNumberPlus extends NumberNumberMetaMethod &#123;</span><br><span class="line">    private static class IntegerInteger extends NumberNumberCallSite &#123;</span><br><span class="line">        public IntegerInteger(CallSite site, MetaClassImpl metaClass, MetaMethod metaMethod, Class[] params, Object receiver, Object[] args) &#123;</span><br><span class="line">            super(site, metaClass, metaMethod, params, (Number)receiver, (Number)args[0]);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public final Object call(Object receiver, Object arg) throws Throwable &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                if(this.checkCall(receiver, arg)) &#123;</span><br><span class="line">                    return Integer.valueOf(((Integer)receiver).intValue() + ((Integer)arg).intValue());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; catch (ClassCastException var4) &#123;</span><br><span class="line">                ;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            return super.call(receiver, arg);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>在反编译后的代码里，我们看到了\$getCallSiteArray()和\$createCallSiteArray()方法，这无疑是groovy编译器加到代码里的。我们继续来看add方法内部调用plus方法(注意：+号操作在groovy里被实现为plus方法调用)的实现细节，通过\$getCallSiteArray()为plus方法返回的CallSite是一个IntegerInteger的实例，很容易理解这是通过参数类型决定的实例。调用call方法的时候真正完成加法操作。</p>
+<p>总结一下，java7之前是通过动态语言自己实现CallSite的方式在编辑器层面插入动态方法调用的逻辑。</p>
+<h3 id="Java7之后动态类型语言可以如何利用invokedynamic指令呢？"><a href="#Java7之后动态类型语言可以如何利用invokedynamic指令呢？" class="headerlink" title="Java7之后动态类型语言可以如何利用invokedynamic指令呢？"></a>Java7之后动态类型语言可以如何利用invokedynamic指令呢？</h3><p>我们用<code>groovyc --indy GroovyInvokeDynamicDemo.groovy</code>命令在java8环境对同一段groovy代码进行编译，再用<code>javap -v GroovyInvokeDynamicDemo</code>反编译，得到以下字节码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Constant pool:</span><br><span class="line">   #27 = Utf8               (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">   #38 = Utf8               invoke</span><br><span class="line">   #39 = NameAndType        #38:#27       // invoke:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; </span><br><span class="line">   #40 = InvokeDynamic      #0:#39        // #0:invoke:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">&#123;</span><br><span class="line">  public static java.lang.Object add(java.lang.Object, java.lang.Object);</span><br><span class="line">    descriptor: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">    flags: ACC_PUBLIC, ACC_STATIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=2, locals=2, args_size=2</span><br><span class="line">         0: aload_0</span><br><span class="line">         1: aload_1</span><br><span class="line">         2: invokedynamic #40,  0             // InvokeDynamic #0:invoke:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">         7: areturn</span><br><span class="line">         8: nop</span><br><span class="line">         9: athrow</span><br><span class="line">&#125;</span><br><span class="line">BootstrapMethods:</span><br><span class="line">  0: #34 invokestatic org/codehaus/groovy/vmplugin/v7/IndyInterface.bootstrap:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;I)Ljava/lang/invoke/CallSite;</span><br><span class="line">    Method arguments:</span><br><span class="line">      #36 plus</span><br><span class="line">      #37 0</span><br></pre></td></tr></table></figure>
+<p>可以看到add方法的指令集有了不少精简，与java6环境下的字节码对比，它用一个invokedynamic指令代替了以前invokestatic和invokeinterface组合起来才能完成的事情。从字节码中可以大致看到invokedynamic指令的执行过程。首先，它会先调用BootstrapMethods属性表中的第一个引导方法获得一个CallSite(注意：这里是java/lang/invoke/CallSite)，这里已经包含了具体的方法句柄(MethodHandle)；然后，执行CallSite中获取到的方法句柄。从逻辑上来讲并没有发生太大变化，实现方式上却发生了很大的变化。</p>
+<p>总的来说，invokedynamic指令带来的变化是：</p>
+<blockquote>
+<ol>
+<li>Java API层面，引入CallSite, MethodHandle，将整个方法动态调用的过程标准化</li>
+<li>JVM层面，通过invokedynamic指令简化动态代码调用的字节码</li>
+</ol>
+</blockquote>
+<p>动态脚本语言，通过使用invokeydynamic指令，带来的好处可以用”简单”、”高效”来概括：</p>
+<blockquote>
+<ol>
+<li>简单: 标准化动态语言在JVM上的实现过程，简化了动态语言在JVM上的实现</li>
+<li>高效：直接采用JVM指令可以获得更接近Java的的性能，包括可以享受到JIT优化等</li>
+</ol>
+</blockquote>
+<h2 id="场景2：实现lambda表达式"><a href="#场景2：实现lambda表达式" class="headerlink" title="场景2：实现lambda表达式"></a>场景2：实现lambda表达式</h2><p>除了对动态语言的支持之外，invokedynamic还为Java8引入lambda语言特性提前做好了JVM层面的准备。那我们就来看看lambda表达式是如何实现的吧。</p>
+<h3 id="匿名类来实现"><a href="#匿名类来实现" class="headerlink" title="匿名类来实现?"></a>匿名类来实现?</h3><p>Java8之前，我们也可以利用匿名类来实现类似于lambda表达式的效果(虽然看起来有些笨拙)。所以我们自然而然的猜想，lambda表达式在实现上是不是转换成了匿名类进行实现的。那我们来验证一下，我们用Function类来实现一个函数。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// 匿名类风格实现匿名函数 </span><br><span class="line">import java.util.function.Function;</span><br><span class="line">public class InnerClass &#123;</span><br><span class="line">    Function&lt;Object, String&gt; f = new Function&lt;Object, String&gt;() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public String apply(Object obj) &#123;</span><br><span class="line">            return obj.toString();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>利用javap看到的字节码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  public InnerClass();</span><br><span class="line">    0: aload_0</span><br><span class="line">    1: invokespecial #1    // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">    4: aload_0</span><br><span class="line">    5: new           #2    // class InnerClass$1</span><br><span class="line">    8: dup</span><br><span class="line">    9: aload_0</span><br><span class="line">    10: invokespecial #3   // Method InnerClass$1.&quot;&lt;init&gt;&quot;:(LInnerClass;)V</span><br><span class="line">    13: putfield      #4   // Field f:Ljava/util/function/Function;</span><br><span class="line">    16: return</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>我们看到第10行的invokespecial指令调用了InnerClass$1类的构造函数进行初始化生成一个f实例，InnerClass$1就是一个匿名类。</p>
+<h3 id="利用invokedynamic指令实现"><a href="#利用invokedynamic指令实现" class="headerlink" title="利用invokedynamic指令实现"></a>利用invokedynamic指令实现</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// lambda风格实现匿名函数 </span><br><span class="line">import java.util.function.Function;</span><br><span class="line">public class Lambda &#123;</span><br><span class="line">    Function&lt;Object, String&gt; f = obj -&gt; obj.toString();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对应的字节码为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  public Lambda();</span><br><span class="line">    0: aload_0</span><br><span class="line">    1: invokespecial #1    // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">    4: aload_0</span><br><span class="line">    5: invokedynamic #2, 0 // InvokeDynamic #0:apply:()Ljava/util/function/Function;</span><br><span class="line">    10: putfield     #3    // Field f:Ljava/util/function/Function;</span><br><span class="line">    13: return</span><br><span class="line">&#125;</span><br><span class="line">BootstrapMethods:</span><br><span class="line">  0: #21 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;</span><br><span class="line">    Method arguments:</span><br><span class="line">      #22 (Ljava/lang/Object;)Ljava/lang/Object;</span><br><span class="line">      #23 invokestatic Lambda.lambda$new$0:(Ljava/lang/Object;)Ljava/lang/String;</span><br><span class="line">      #24 (Ljava/lang/Object;)Ljava/lang/String;</span><br></pre></td></tr></table></figure></p>
+<p>invokedynamic指令的工作原理之前已经解释过，通过调用bootstrap方法获得CallSite，然后执行这个CallSite中包含的方法句柄完成方法的调用，调用的结果会返回一个Function的实例。从bootstrap方法的字节码中我们看到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#23 invokestatic Lambda.lambda$new$0:(Ljava/lang/Object;)Ljava/lang/String;</span><br></pre></td></tr></table></figure>
+<p>说明lambda表达式是以类静态方法的形式被调用，对应的代码在逻辑上看起来会是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class Lambda &#123;</span><br><span class="line">    Function&lt;Object, String&gt; f = [dynamic invocation of lambda$new$0]</span><br><span class="line">    static String lambda$new$0(Object obj) &#123;</span><br><span class="line">        return obj.toString();</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这段静态代码的字节码是在运行时生成的，因为我们并没有在class文件中找到这个静态方法。后续如果要执行f这个lambda表达式的话，f.apply会代理给CallSite中的方法句柄（也就是Lambda.lambda$new$0这个静态方法）完成lambda表达式的执行。</p>
+<p>结论：<br>从上面两段字节码可以看到两者的差别非常之大，这也从另一个方面证明lambda函数在底层并不是通过匿名类来实现的。为什么这么设计呢？匿名类会为每一个lambda表达式生成一个.class文件，这个从实现上来看不够优雅，性能上也会带来问题。而利用lambda就可以利用invokedynamic指令的动态调用特性实现lambda表达式的调用。</p>
+<h1 id="二、新的垃圾收集器-G1"><a href="#二、新的垃圾收集器-G1" class="headerlink" title="二、新的垃圾收集器: G1"></a>二、新的垃圾收集器: G1</h1><p>JDK 1.7 Update 14开始还引入了一个新的垃圾收集器G1，在此之前，互联网领域很多采用ParNew+CMS的垃圾收集器组合进行分代垃圾回收。</p>
+<h2 id="为什么需要一种新的垃圾回收器"><a href="#为什么需要一种新的垃圾回收器" class="headerlink" title="为什么需要一种新的垃圾回收器"></a>为什么需要一种新的垃圾回收器</h2><p>在平常工作中，我们最害怕的是出现Full GC，Full GC主要会进行老年代的垃圾回收，主流的老年代垃圾回收器CMS虽然设计目标是获得最短的回收停顿时间，但是仍然会导致一定时间的停服务(Stop The World)，所以会影响到服务的正常响应。</p>
+<p>CMS对于堆内存的分代管理机制大家应该已经非常熟悉:</p>
+<p><img src="/img/5959b0413dfb5f1969000002.png" alt="CMS堆内存分代管理"></p>
+<p>先来看看CMS的运行示意图。</p>
+<p><img src="/img/5959ad743dfb5f1969000000.png" alt="CMS垃圾回收示意图"></p>
+<p>CMS全称Concurrent mark Sweep，所以很容易理解其采用的是标记清除的垃圾回收算法，从图中也可以看到整个垃圾回收过程分为五个阶段：初始标记、并发标记、重新标记、并发清理、重置线程。尽管并发标记、并发清理和重置线程已经可以和用户线程同时运行，但是初始标记阶段和重新标记两个阶段是需要停用户线程的。通常，初始标记阶段很快，重新标记阶段相对耗时。对于堆空间很大的场景，这个停服务时间可能就会长到无法接受。</p>
+<p>另外一方面，CMS采用的是标记清除算法，这会导致内存碎片的产生，当需要为大对象分配空间时，就会出现找不到连续大空间的情况，这种情况下会触发一次Full GC，经过参数配置，Full GC在垃圾回收之前可以先进行一次内存合并整理，但是合并整理过程是无法需要Stop The World，所以解决了内存碎片问题的同时，又导致额外的停服务时间。</p>
+<p>总体来讲，CMS主要的问题在于：</p>
+<ol>
+<li>垃圾回收过程依然会停用户服务，如果是大内存场景下发生Full GC，这个时间可能会比较长。</li>
+<li>采用标记清除算法，会导致大量的碎片，影响大对象的空间分配。 </li>
+</ol>
+<h2 id="G1的工作机制"><a href="#G1的工作机制" class="headerlink" title="G1的工作机制"></a>G1的工作机制</h2><p>G1是一款是以替换CMS为目标并且面向服务端应用的垃圾收集器，它的本质思想是化整为零。如果每次垃圾回收可以选择堆空间的一部分进行回收，那么停顿时间就可以被控制在合理的范围内。</p>
+<h3 id="化整为零"><a href="#化整为零" class="headerlink" title="化整为零"></a>化整为零</h3><p>我们先来看看G1化整为零的设计, 下图是G1中对内容的布局:</p>
+<p><img src="/img/5959affd3dfb5f1969000001.png" alt="G1 Region划分"></p>
+<p>在G1中依然是分代回收的概念，但是每一代的空间不再是简单地连续分配，他们被分散成多个大小相等的存储块，每个块都可以进行独立的垃圾回收，他们被称作Region。因为可以独立进行垃圾回收，那就有能力将一次很长的GC分解成多个短GC，通过调整每一次需要回收的Region数量来控制停顿时间的长短。</p>
+<p>如何选择需要回收的Region呢？G1采用的是回收价值优先策略，能回收的空间越大，所需时间越短，就会获得较高的优先级而先被回收掉。</p>
+<p>化整为零这件事情做起来并不容易，试想要把一棵对象依赖树分割开来，难度可想而知。其实这也不是G1新引入的问题，G1和其它收集器一样都采用了Remembered Set（简称RSet）来避免全堆扫描，本质上就是一种空间换时间算法。逻辑上每个Region都有一个RSet，它能够维护“谁引用了我的对象”这样的信息。所以当对Region内的对象进行可达性分析的时候结合RSet的信息就可以避免对全堆进行扫描了。</p>
+<h3 id="停顿预测模型"><a href="#停顿预测模型" class="headerlink" title="停顿预测模型"></a>停顿预测模型</h3><p>因为做到了化整为零，G1可以建立停顿预测模型。通过参数-XX:MaxGCPauseMillis指定一个收集过程的目标停顿时间。它会对每个Region垃圾回收耗时的历史数据进行分析，建立停顿预测模型，来预测当前时间点对每个Region进行垃圾回收可能消耗的时间，再根据用户设定的目标停顿时间，就可以计算出来需要回收的Region数量。<br>需要注意的是，因为依赖于根据历史数据预测垃圾回收时间，因此并不能保证百分百的准确性，所以这里的目标停顿时间是一个期望值，并不是硬性条件。</p>
+<h3 id="标记整理"><a href="#标记整理" class="headerlink" title="标记整理"></a>标记整理</h3><p>G1的另一个改进之处在于采用标记整理算法避免内存碎片，以下是G1垃圾回收各阶段的示意图：</p>
+<p><img src="/img/5958867c5d27cb03c3000000.png" alt="G1垃圾回收示意图"></p>
+<p>从图中看到，与CMS相比，整个垃圾回收的过程其实没有太多的变化，最重要的变化是采用“标记整理”算法取代了CMS的“标记清除”算法，这个可以解决内存碎片的问题。</p>
+<p>总体来说，G1的优势在于：</p>
+<ol>
+<li>将垃圾回收化整为零，减少对用户服务的影响</li>
+<li>垃圾回收时间可配置</li>
+<li>避免内存碎片</li>
+</ol>
+<h1 id="三、-永久代被逐步移除，引入元空间Metaspace"><a href="#三、-永久代被逐步移除，引入元空间Metaspace" class="headerlink" title="三、 永久代被逐步移除，引入元空间Metaspace"></a>三、 永久代被逐步移除，引入元空间Metaspace</h1><p>JDK8之前，堆被分为新生代、老年代; 除了堆之外，JVM中还有永久代，永久代中存放类的元数据(包括类的层级信息、方法数据和方法信息)、类的静态变量、运行时常量池(包括字符串字面量、符号引用)等。其中，类的元数据和静态变量会在类被加载时被分配，类被卸载时被回收；而字符串字面量是在GC的时候就可能被回收。</p>
+<p>永久代的移除可以参考下面这张图，新引入的元空间被放在本地内存中进行管理：</p>
+<p><img src="/img/596580018324b35bee000000.png" alt=""></p>
+<h2 id="永久代有哪些问题？为何需要被移除？"><a href="#永久代有哪些问题？为何需要被移除？" class="headerlink" title="永久代有哪些问题？为何需要被移除？"></a>永久代有哪些问题？为何需要被移除？</h2><p>主要有以下几个原因：</p>
+<ol>
+<li>JVM家族融合趋势，有些JVM没有永久代的设计。</li>
+<li>很难确定永久代需要的空间大小，如果设置不合理，会导致OOM。而且永久代的垃圾回收和老年代是绑定的，一旦其中一个占满，就会一起进行GC。</li>
+<li>增加了GC实现的复杂度，对永久代中的元数据需要特殊处理</li>
+</ol>
+<h2 id="如何解决这些问题呢"><a href="#如何解决这些问题呢" class="headerlink" title="如何解决这些问题呢?"></a>如何解决这些问题呢?</h2><p>永久代的移除和元空间的引入是一个分步骤完成的过程：</p>
+<ol>
+<li>JDK7中，字符串字面量和类的静态变量首先被从永久代被移出到Java堆中;避免因为字符串字面量大量存储到字符串常量池中而导致的永久代内存溢出。</li>
+<li>JDK8中，JVM彻底移除了永久代，同时引入元空间(Metaspace)来管理原来的元数据，这些元数据被分配到本地内存中进行管理。元空间默认上限是本地内存大小，所以降低了元空间OOM的可能性。</li>
+</ol>
+<p>需要注意的是：因为默认不对元空间大小做限制，所以发生在元空间的内存泄露可能会耗尽内存，所以仍然需要通过监控来避免这种情况的发生。</p>
+<h1 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h1><p>总结起来，从Java6到Java8语言特性和JVM内部都有比较大的变化，了解并合理使用这些新特性将会帮助我们解决实际工作中的一些问题。期待Java和JVM生态越来越好。</p>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ol>
+<li><a href="http://www.oracle.com/technetwork/articles/java/dyntypelang-142348.html" target="_blank" rel="external">New JDK 7 Feature: Support for Dynamically Typed Languages in the Java Virtual Machine</a></li>
+<li><a href="http://www.javaworld.com/article/2860079/learn-java/invokedynamic-101.html" target="_blank" rel="external">Invokedynamic 101</a></li>
+<li><a href="https://book.douban.com/subject/26772632/" target="_blank" rel="external">Java 8 实战</a></li>
+<li><a href="https://book.douban.com/subject/24722612/" target="_blank" rel="external">深入理解Java虚拟机(第2版)</a></li>
+<li><a href="https://book.douban.com/subject/10734875/" target="_blank" rel="external">深入理解Java 7</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/22591838" target="_blank" rel="external">Java Hotspot G1 GC的一些关键技术</a></li>
+<li><a href="http://openjdk.java.net/jeps/122" target="_blank" rel="external">JEP 122: Remove the Permanent Generation</a></li>
+<li><a href="http://www.infoq.com/cn/articles/Java-PERMGEN-Removed" target="_blank" rel="external">Java永久代去哪儿了</a></li>
+<li><a href="http://www.sczyh30.com/posts/Java/jvm-metaspace/" target="_blank" rel="external">探秘Metaspace</a></li>
+<li><a href="http://www.jianshu.com/p/c7f47de2ee80" target="_blank" rel="external">Java常量池理解与总结 </a> </li>
+</ol>
+<hr>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/JVM/" rel="tag"># JVM</a>
+          
+            <a href="/tags/Java6/" rel="tag"># Java6</a>
+          
+            <a href="/tags/Java7/" rel="tag"># Java7</a>
+          
+            <a href="/tags/Java8/" rel="tag"># Java8</a>
+          
+            <a href="/tags/G1/" rel="tag"># G1</a>
+          
+            <a href="/tags/GC/" rel="tag"># GC</a>
+          
+            <a href="/tags/CMS/" rel="tag"># CMS</a>
+          
+            <a href="/tags/Lambda/" rel="tag"># Lambda</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/15/mac-newbie-guide/" rel="next" title="Windows转Mac上手指南">
+                <i class="fa fa-chevron-left"></i> Windows转Mac上手指南
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/07/13/从Java6到Java8-你应该知道的JVM新特性/"
+           data-title="从Java6到Java8: 你应该知道的JVM新特性" data-url="http://warrentalk.site/2017/07/13/从Java6到Java8-你应该知道的JVM新特性/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="http://s.gravatar.com/avatar/ce912e646f98ab3fbb37129e50df55ec?s=80"
+               alt="Warren Zhou" />
+          <p class="site-author-name" itemprop="name">Warren Zhou</p>
+          <p class="site-description motion-element" itemprop="description">Keep Hungry, Keep Learning</p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">10</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://github.com/zhouhualei" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://twitter.com/warren_zhou" target="_blank" title="Twitter">
+                  
+                    <i class="fa fa-fw fa-twitter"></i>
+                  
+                  Twitter
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/hualeizhou" target="_blank" title="Weibo">
+                  
+                    <i class="fa fa-fw fa-weibo"></i>
+                  
+                  Weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://douban.com/people/joesay" target="_blank" title="douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  douban
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/warrenzhou" target="_blank" title="zhihu">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  zhihu
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+                
+          <div class="qrcode-section" itemprop="qrcod3">
+<img class="qrcode" itemprop="image"
+	style="padding-top:20px;width:80%;"	
+               src="/uploads/wechat-qcode.jpg"
+               alt="Warren Zhou" />
+          </div>
+        
+
+
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一、指令集新成员：invokedynamic"><span class="nav-number">2.</span> <span class="nav-text">一、指令集新成员：invokedynamic</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要这条指令？"><span class="nav-number">2.1.</span> <span class="nav-text">为什么需要这条指令？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#invokedynamic是如何解决这个问题的？"><span class="nav-number">2.2.</span> <span class="nav-text">invokedynamic是如何解决这个问题的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#场景1：更好地支持动态类型语言"><span class="nav-number">2.3.</span> <span class="nav-text">场景1：更好地支持动态类型语言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java7之前动态类型语言是如何运行在JVM上的呢？"><span class="nav-number">2.3.1.</span> <span class="nav-text">Java7之前动态类型语言是如何运行在JVM上的呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java7之后动态类型语言可以如何利用invokedynamic指令呢？"><span class="nav-number">2.3.2.</span> <span class="nav-text">Java7之后动态类型语言可以如何利用invokedynamic指令呢？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#场景2：实现lambda表达式"><span class="nav-number">2.4.</span> <span class="nav-text">场景2：实现lambda表达式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#匿名类来实现"><span class="nav-number">2.4.1.</span> <span class="nav-text">匿名类来实现?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用invokedynamic指令实现"><span class="nav-number">2.4.2.</span> <span class="nav-text">利用invokedynamic指令实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、新的垃圾收集器-G1"><span class="nav-number">3.</span> <span class="nav-text">二、新的垃圾收集器: G1</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要一种新的垃圾回收器"><span class="nav-number">3.1.</span> <span class="nav-text">为什么需要一种新的垃圾回收器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#G1的工作机制"><span class="nav-number">3.2.</span> <span class="nav-text">G1的工作机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#化整为零"><span class="nav-number">3.2.1.</span> <span class="nav-text">化整为零</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#停顿预测模型"><span class="nav-number">3.2.2.</span> <span class="nav-text">停顿预测模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#标记整理"><span class="nav-number">3.2.3.</span> <span class="nav-text">标记整理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、-永久代被逐步移除，引入元空间Metaspace"><span class="nav-number">4.</span> <span class="nav-text">三、 永久代被逐步移除，引入元空间Metaspace</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#永久代有哪些问题？为何需要被移除？"><span class="nav-number">4.1.</span> <span class="nav-text">永久代有哪些问题？为何需要被移除？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何解决这些问题呢"><span class="nav-number">4.2.</span> <span class="nav-text">如何解决这些问题呢?</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Conclusion"><span class="nav-number">5.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">6.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Warren Zhou</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"zhouhualei"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>
